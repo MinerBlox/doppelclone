@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "@fontsource-variable/geist";
-import "@fontsource-variable/manrope";
+import "@fontsource/righteous/latin-400.css";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { publicAsset } from "@/lib/utils";

@@ -52,13 +52,31 @@ a, button, input, select { -webkit-tap-highlight-color: transparent; }
 
 .hero { text-align: center; padding-block: clamp(110px, 12vw, 174px) clamp(100px, 10vw, 146px); }
 .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 10px; font-weight: 650; letter-spacing: 0.135em; text-transform: uppercase; }
-.hero h1 { position: relative; display: table; isolation: isolate; margin: 0 auto 3px; font-family: "Manrope Variable", var(--font-sans); font-size: clamp(54px, 7.3vw, 102px); font-weight: 650; line-height: 1.14; letter-spacing: -0.055em; }
-.hero-wordmark { position: relative; z-index: 1; display: block; color: var(--foreground); }
-.hero-signal-defs { position: absolute; }
-.hero-signal { position: absolute; inset: 0; color: #7065b3; filter: url(#letter-wave); pointer-events: none; animation: letter-wave-fade 4s linear infinite; }
-@keyframes letter-wave-fade {
-  0%, 75%, 100% { opacity: 0; }
-  18% { opacity: .32; }
+.hero h1 {
+  position: relative;
+  display: table;
+  isolation: isolate;
+  margin: 0 auto 3px;
+  font: 400 clamp(54px, 7.3vw, 102px) / 1.14 "Righteous", var(--font-sans);
+  letter-spacing: -0.025em;
+  text-shadow: .026em .026em var(--background);
+}
+.hero h1::after {
+  content: attr(data-shadow) / "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transform: translate(.075em, .075em);
+  pointer-events: none;
+  text-shadow: none;
+  background-image: linear-gradient(45deg, transparent 40%, #81769d 40% 60%, transparent 60%);
+  background-size: .05em .05em;
+  background-clip: text;
+  color: transparent;
+  animation: wordmark-stripes 15s linear infinite;
+}
+@keyframes wordmark-stripes {
+  to { background-position: 1em -1em; }
 }
 .hero-description { color: var(--muted-foreground); font-size: clamp(14px, 1.4vw, 17px); line-height: 1.65; margin-top: 5px; margin-bottom: 35px; }
 .discovery-search { display: flex; align-items: center; gap: 12px; margin-inline: auto; width: min(100%, 610px); padding: 6px 6px 6px 15px; border: 1px solid var(--border); border-radius: 11px; background: var(--card); text-align: left; }
@@ -162,5 +180,5 @@ a, button, input, select { -webkit-tap-highlight-color: transparent; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
-  .hero-signal { display: none; }
+  .hero h1::after { animation: none; }
 }
