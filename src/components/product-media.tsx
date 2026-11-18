@@ -160,7 +160,7 @@ export function QcGallery({ groups }: { groups: Group[] }) {
         {viewer && selected && <div className="qc-viewer-content">
           <div className="qc-viewer-header">
             <div><h3 id="qc-viewer-title">QC photo group</h3>
-              <p aria-live="polite">{views[selected.view]} · {viewer.index + 1} of {viewer.group.photos.length}</p></div>
+              <p>Sample warehouse photos</p></div>
             <button type="button" className="gallery-control" aria-label="Close QC photos" onClick={() => dialog.current?.close()}><X size={21} /></button>
           </div>
           <div className="qc-viewer-image">
@@ -170,11 +170,14 @@ export function QcGallery({ groups }: { groups: Group[] }) {
               <button className="media-arrow media-arrow-next" type="button" aria-label="Next photo in group" onClick={() => moveViewer(1)}><ChevronRight size={21} /></button>
             </>}
           </div>
-          <div className="product-thumbs qc-viewer-thumbs">
-            {viewer.group.photos.map((photo, index) => <button key={photo.id} type="button" aria-label={`Show ${views[photo.view].toLowerCase()} photo`}
-              aria-pressed={viewer.index === index} onClick={() => setViewer({ ...viewer, index })}>
-              <Image src={publicAsset(photo.src)} alt="" width={64} height={64} />
-            </button>)}
+          <div className="qc-viewer-footer">
+            <p className="qc-viewer-caption" aria-live="polite">{views[selected.view]} · {viewer.index + 1} of {viewer.group.photos.length}</p>
+            <div className="product-thumbs qc-viewer-thumbs" role="group" aria-label="Photos in this QC group">
+              {viewer.group.photos.map((photo, index) => <button key={photo.id} type="button" aria-label={`Show ${views[photo.view].toLowerCase()} photo`}
+                aria-pressed={viewer.index === index} onClick={() => setViewer({ ...viewer, index })}>
+                <Image src={publicAsset(photo.src)} alt="" width={64} height={64} />
+              </button>)}
+            </div>
           </div>
         </div>}
       </dialog>

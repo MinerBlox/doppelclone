@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ScanLine } from "lucide-react";
 import { ProductMedia, QcGallery } from "@/components/product-media";
+import { AgentLinks } from "@/components/agent-links";
 import { catalog } from "@/lib/catalog/service";
 import type { QcImage } from "@/lib/catalog/types";
 
@@ -48,6 +49,7 @@ export default async function ProductPage({ params }: Props) {
             <div><dt>Seller</dt><dd>{item.seller.name}</dd></div>
             <div><dt>Ships from</dt><dd>{item.seller.city}</dd></div>
           </dl>
+          <AgentLinks />
           {photos.length > 0 && <a className="detail-qc-link" href="#product-qc">
             <ScanLine size={17} aria-hidden="true" /> Browse {photos.length} QC photos
           </a>}
