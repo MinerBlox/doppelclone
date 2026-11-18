@@ -5,7 +5,7 @@ export function SiteHeader() {
   return (
     <header className="header">
       <div className="shell header-inner">
-        <Link className="wordmark" href="/" aria-label="Fieldwork home">Fieldwork<span>.</span></Link>
+        <Link className="wordmark" href="/" aria-label="FindThat home">findthat<span>.</span>net</Link>
         <nav aria-label="Main navigation">
           <a className="nav-link" href="#discover">Discover</a>
           <a className="nav-link" href="#qc"><ScanLine size={15} aria-hidden="true" /> QC photos</a>

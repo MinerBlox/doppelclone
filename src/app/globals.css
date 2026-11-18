@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source("../");
 
 :root {
   color-scheme: light;
@@ -44,16 +44,17 @@ a, button, input, select { -webkit-tap-highlight-color: transparent; }
 
 .header { border-bottom: 1px solid var(--border); }
 .header-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.wordmark { font-size: 22px; font-weight: 720; letter-spacing: -0.068em; line-height: 1; white-space: nowrap; }
+.wordmark { font-size: 20px; font-weight: 650; letter-spacing: -0.015em; line-height: 1.1; white-space: nowrap; }
 .wordmark span { color: var(--accent); }
 .header nav { display: flex; align-items: center; gap: 28px; }
 .nav-link { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 550; color: var(--muted-foreground); }
 .nav-link:hover { color: var(--foreground); }
 
-.hero { text-align: center; padding-block: clamp(76px, 9vw, 136px) clamp(70px, 7.5vw, 106px); }
+.hero { text-align: center; padding-block: clamp(110px, 12vw, 174px) clamp(100px, 10vw, 146px); }
 .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 10px; font-weight: 650; letter-spacing: 0.135em; text-transform: uppercase; }
-.hero h1 { margin-bottom: 16px; font-size: clamp(51px, 7vw, 100px); font-weight: 690; line-height: 0.99; letter-spacing: -0.082em; text-wrap: balance; }
-.hero-description { color: var(--muted-foreground); font-size: clamp(14px, 1.3vw, 16px); line-height: 1.65; margin-bottom: 29px; }
+.hero h1 { margin-bottom: 18px; font-size: clamp(56px, 7vw, 100px); font-weight: 620; line-height: 1.1; letter-spacing: -0.034em; }
+.hero h1 span { color: var(--accent); }
+.hero-description { color: var(--muted-foreground); font-size: clamp(14px, 1.4vw, 17px); line-height: 1.65; margin-bottom: 35px; }
 .discovery-search { display: flex; align-items: center; gap: 12px; margin-inline: auto; width: min(100%, 610px); padding: 6px 6px 6px 15px; border: 1px solid var(--border); border-radius: 11px; background: var(--card); text-align: left; }
 .discovery-search:focus-within { border-color: var(--ring); }
 .discovery-search > svg { flex: none; color: var(--muted-foreground); }
@@ -130,9 +131,9 @@ a, button, input, select { -webkit-tap-highlight-color: transparent; }
   .header-inner { min-height: 59px; }
   .header nav { gap: 13px; }
   .nav-link { font-size: 12px; }
-  .hero { padding-block: 62px 59px; }
-  .hero h1 { font-size: clamp(36px, 10.8vw, 59px); }
-  .hero-description { margin-bottom: 24px; }
+  .hero { padding-block: 90px 79px; }
+  .hero h1 { font-size: clamp(38px, 12vw, 64px); margin-bottom: 14px; }
+  .hero-description { margin-bottom: 28px; }
   .search-submit { padding-inline: 10px; }
   .search-submit svg { display: none; }
   .discovery-search { gap: 8px; padding-left: 10px; }

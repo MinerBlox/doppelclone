@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import "@fontsource-variable/geist";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
+import { publicAsset } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "China: Made Easy. | Fieldwork",
+  title: "FindThat | China: Made easy.",
   description: "Discover independent finds from 1688, Weidian and Taobao, with quality check photos.",
+  icons: { icon: publicAsset("/findthat-icon.png") },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -16,7 +19,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <SiteHeader />
         {children}
         <footer className="shell site-footer">
-          <a className="wordmark" href="/">Fieldwork<span>.</span></a>
+          <Link className="wordmark" href="/">findthat<span>.</span>net</Link>
           <p>Marketplace discovery · Preview catalog</p>
         </footer>
       </body>

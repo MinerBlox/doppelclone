@@ -1,23 +1,36 @@
 "use client";
 
 import { ArrowRight, ScanLine } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DiscoveryControls, DiscoverySearch } from "@/components/discovery-controls";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
 import { filterCatalog } from "@/lib/catalog/filter";
-import { marketplaces, type CatalogItem, type CatalogQuery, type QcImage } from "@/lib/catalog/types";
+import { categories, marketplaces, sorts, type CatalogItem, type CatalogQuery, type QcImage } from "@/lib/catalog/types";
 
-export function Discovery({ initialState, items, photosBySlug }: {
-  initialState: CatalogQuery;
+export function Discovery({ items, photosBySlug }: {
   items: CatalogItem[];
   photosBySlug: Record<string, QcImage[]>;
 }) {
-  const [state, setState] = useState(initialState);
-  const [draft, setDraft] = useState(initialState.query ?? "");
+  const [state, setState] = useState<CatalogQuery>({});
+  const [draft, setDraft] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
   const results = filterCatalog(items, state);
   const filtered = Boolean(state.query || state.category || state.marketplace || state.qcOnly || (state.sort && state.sort !== "featured"));
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.size) return;
+    const query = params.get("q")?.trim().slice(0, 1000) ?? "";
+    setDraft(query);
+    setState({
+      query,
+      category: categories.find((category) => category === params.get("category")),
+      marketplace: marketplaces.find((marketplace) => marketplace === params.get("source")),
+      qcOnly: params.get("qc") === "1",
+      sort: sorts.find((sort) => sort === params.get("sort")),
+    });
+  }, []);
 
   function updateFilters(patch: Partial<CatalogQuery>) {
     setState((current) => ({ ...current, ...patch }));
@@ -31,8 +44,8 @@ export function Discovery({ initialState, items, photosBySlug }: {
   return (
     <main id="main">
       <section className="shell hero" aria-labelledby="hero-title">
-        <h1 id="hero-title">China: Made Easy.</h1>
-        <p className="hero-description">Find more for less - at the touch of a finger.</p>
+        <h1 id="hero-title">findthat<span>.</span>net</h1>
+        <p className="hero-description">China: Made easy. Get more, for less.</p>
         <DiscoverySearch query={draft} onChange={setDraft} onSearch={() => {
           setState({ query: draft.trim() });
           heading.current?.focus();

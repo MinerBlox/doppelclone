@@ -1,4 +1,4 @@
-# Fieldwork
+# FindThat
 
 A local frontend for discovering products from 1688, Weidian and Taobao and viewing sample quality check photos.
 
@@ -11,7 +11,11 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:3000. Use `npm run typecheck` for TypeScript or `npm run build` to build the production bundle.
+Open http://localhost:3000. Use `npm run typecheck` for TypeScript or `npm run build` to export the static site to `out/`.
+
+## GitHub Pages
+
+GitHub Pages serves the static export from the root of `main` at [minerblox.github.io/doppelclone](https://minerblox.github.io/doppelclone/). Build with `NEXT_PUBLIC_BASE_PATH=/doppelclone` so the bundle, photos, and links work at the project URL. Publish the contents of `out/` at the repository root alongside `.nojekyll`. Keep generated files in sync with the source when publishing updates.
 
 ## First slice
 
@@ -24,6 +28,6 @@ The catalog, source IDs, sellers, and QC records are fictional. The product and 
 - `src/app` holds App Router pages, the global shell layout, and theme tokens.
 - `src/components` holds the header, discovery controls, reusable product cards, and shadcn UI primitives.
 - `src/lib/catalog` holds domain models, fixtures, URL normalization, and the async server-side `CatalogService` interface. Future providers can implement the interface using live APIs.
-- `public/catalog` holds local WebP samples served through Next.js image optimization.
+- `public/catalog` holds local WebP samples served as static files.
 
 The next slices add `/search`, `/products/[slug]`, `/qc`, `/collections`, and `/users/[handle]`. The homepage provides the working discovery and QC interactions for this slice.

@@ -1,0 +1,4 @@
+:HL["/doppelclone/_next/static/chunks/3te7u5pstm8dy.css","style"]
+:HC["/",""]
+1:[["children",{"s":"__PAGE__","h":160}]]
+0:{"b":"_VNyp3wUYUUdWWw9mzNn6","t":{"t":{"s":"","h":80,"c":"$Q1"}}}

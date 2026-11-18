@@ -5,6 +5,7 @@ import { ArrowUpRight, Camera, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { publicAsset } from "@/lib/utils";
 import type { CatalogItem, QcImage } from "@/lib/catalog/types";
 
 export function ProductCard({ item, qcImages, priority = false }: {
@@ -27,7 +28,7 @@ export function ProductCard({ item, qcImages, priority = false }: {
       <button ref={trigger} className="product-trigger" type="button" aria-haspopup="dialog"
         onClick={() => setOpen(true)}>
         <span className="product-image block">
-          <Image src={item.photo.src} alt={item.photo.alt} fill preload={priority}
+          <Image src={publicAsset(item.photo.src)} alt={item.photo.alt} fill preload={priority}
             sizes="(max-width: 620px) 46vw, (max-width: 920px) 31vw, (max-width: 1310px) 24vw, 290px" />
           <span className="preview-arrow"><ArrowUpRight size={16} aria-hidden="true" /></span>
         </span>
@@ -48,7 +49,7 @@ export function ProductCard({ item, qcImages, priority = false }: {
           <Button variant="ghost" size="icon" className="dialog-close" aria-label="Close product preview"
             onClick={() => dialog.current?.close()}><X size={19} /></Button>
           <div className="dialog-lead">
-            <Image src={item.photo.src} alt={item.photo.alt} width={540} height={540} sizes="(max-width: 620px) 85vw, 260px" />
+            <Image src={publicAsset(item.photo.src)} alt={item.photo.alt} width={540} height={540} sizes="(max-width: 620px) 85vw, 260px" />
             <div>
               <p className="eyebrow">{item.listing.marketplace} · {item.seller.city}</p>
               <h2 id={titleId}>{item.name}</h2>
@@ -65,8 +66,8 @@ export function ProductCard({ item, qcImages, priority = false }: {
                 <p>Sample warehouse photos</p>
                 <div className="dialog-gallery">
                   {qcImages.map((photo) => <figure key={photo.id}>
-                    <a href={photo.src} target="_blank" rel="noreferrer" aria-label={`Open full-size ${photo.view} sample photo`}>
-                      <Image src={photo.src} alt={photo.alt} width={540} height={540} sizes="(max-width: 620px) 42vw, 300px" />
+                    <a href={publicAsset(photo.src)} target="_blank" rel="noreferrer" aria-label={`Open full-size ${photo.view} sample photo`}>
+                      <Image src={publicAsset(photo.src)} alt={photo.alt} width={540} height={540} sizes="(max-width: 620px) 42vw, 300px" />
                     </a>
                     <figcaption>{photo.view}</figcaption>
                   </figure>)}
