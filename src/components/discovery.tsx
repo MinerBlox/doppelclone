@@ -44,7 +44,7 @@ export function Discovery({ items, photosBySlug }: {
   return (
     <main id="main">
       <section className="shell hero" aria-labelledby="hero-title">
-        <h1 id="hero-title">findthat<span>.</span>net</h1>
+        <h1 id="hero-title"><span className="hero-wordmark">findthat.net</span><span className="hero-signal" aria-hidden="true"><i /><i /><i /></span></h1>
         <p className="hero-description">China: Made easy. Get more, for less.</p>
         <DiscoverySearch query={draft} onChange={setDraft} onSearch={() => {
           setState({ query: draft.trim() });
