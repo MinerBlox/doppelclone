@@ -54,15 +54,12 @@ a, button, input, select { -webkit-tap-highlight-color: transparent; }
 .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 10px; font-weight: 650; letter-spacing: 0.135em; text-transform: uppercase; }
 .hero h1 { position: relative; display: table; isolation: isolate; margin: 0 auto 3px; font-family: "Manrope Variable", var(--font-sans); font-size: clamp(54px, 7.3vw, 102px); font-weight: 650; line-height: 1.14; letter-spacing: -0.055em; }
 .hero-wordmark { position: relative; z-index: 1; display: block; color: var(--foreground); }
-.hero-signal { position: absolute; z-index: 0; top: 50%; left: 50%; width: calc(100% + 78px); height: calc(100% + 38px); border: 1px solid rgb(80 66 187 / 0.18); border-radius: 30px; transform: translate(-50%, -50%); pointer-events: none; animation: signal-breathe 5s ease-in-out infinite; }
-.hero-signal::before, .hero-signal::after, .hero-signal i { position: absolute; inset: 0; border: 1px solid rgb(80 66 187 / 0.12); border-radius: inherit; content: ""; }
-.hero-signal::before { inset: -11px; animation: signal-line 5s ease-in-out infinite; }
-.hero-signal::after { inset: -22px; animation: signal-line 5s ease-in-out 1s infinite; }
-.hero-signal i:nth-child(1) { inset: -33px; opacity: .7; animation: signal-line 5s ease-in-out 2s infinite; }
-.hero-signal i:nth-child(2) { inset: -44px; opacity: .45; animation: signal-line 5s ease-in-out 3s infinite; }
-.hero-signal i:nth-child(3) { inset: -55px; opacity: .25; animation: signal-line 5s ease-in-out 4s infinite; }
-@keyframes signal-breathe { 0%, 100% { border-color: rgb(80 66 187 / .12); } 50% { border-color: rgb(80 66 187 / .3); } }
-@keyframes signal-line { 0%, 100% { opacity: .15; transform: scale(.99); } 50% { opacity: .48; transform: scale(1.005); } }
+.hero-signal { position: absolute; z-index: 2; inset: -10% -5%; width: 110%; height: 120%; overflow: visible; pointer-events: none; }
+.hero-signal text { fill: none; stroke: #5042bb; stroke-width: 1px; vector-effect: non-scaling-stroke; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.hero-signal text:nth-child(1) { stroke-opacity: .22; animation: letter-radiate 4.5s ease-out infinite; }
+.hero-signal text:nth-child(2) { stroke-opacity: .15; animation: letter-radiate 4.5s ease-out 1.5s infinite; }
+.hero-signal text:nth-child(3) { stroke-opacity: .1; animation: letter-radiate 4.5s ease-out 3s infinite; }
+@keyframes letter-radiate { 0% { opacity: 0; transform: scale(1); } 12% { opacity: 1; } 85%, 100% { opacity: 0; transform: scale(1.14, 1.28); } }
 .hero-description { color: var(--muted-foreground); font-size: clamp(14px, 1.4vw, 17px); line-height: 1.65; margin-top: 5px; margin-bottom: 35px; }
 .discovery-search { display: flex; align-items: center; gap: 12px; margin-inline: auto; width: min(100%, 610px); padding: 6px 6px 6px 15px; border: 1px solid var(--border); border-radius: 11px; background: var(--card); text-align: left; }
 .discovery-search:focus-within { border-color: var(--ring); }
@@ -142,12 +139,6 @@ a, button, input, select { -webkit-tap-highlight-color: transparent; }
   .nav-link { font-size: 12px; }
   .hero { padding-block: 100px 88px; }
   .hero h1 { font-size: clamp(39px, 11.7vw, 63px); }
-  .hero-signal { width: calc(100% + 32px); height: calc(100% + 30px); border-radius: 22px; }
-  .hero-signal::before { inset: -8px; }
-  .hero-signal::after { inset: -16px; }
-  .hero-signal i:nth-child(1) { inset: -24px; }
-  .hero-signal i:nth-child(2) { inset: -32px; }
-  .hero-signal i:nth-child(3) { inset: -40px; }
   .hero-description { margin-top: 3px; margin-bottom: 30px; }
   .search-submit { padding-inline: 10px; }
   .search-submit svg { display: none; }
@@ -171,5 +162,5 @@ a, button, input, select { -webkit-tap-highlight-color: transparent; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
-  .hero-signal, .hero-signal::before, .hero-signal::after, .hero-signal i { animation: none !important; }
+  .hero-signal text { animation: none !important; opacity: 0 !important; }
 }
