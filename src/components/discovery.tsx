@@ -44,7 +44,32 @@ export function Discovery({ items, photosBySlug }: {
   return (
     <main id="main">
       <section className="shell hero" aria-labelledby="hero-title">
-        <h1 id="hero-title"><span className="hero-wordmark">findthat.net</span><svg className="hero-signal" aria-hidden="true" viewBox="0 0 1000 200" preserveAspectRatio="none"><text x="500" y="146" textAnchor="middle">findthat.net</text><text x="500" y="146" textAnchor="middle">findthat.net</text><text x="500" y="146" textAnchor="middle">findthat.net</text></svg></h1>
+        <h1 id="hero-title">
+          <span className="hero-wordmark">findthat.net</span>
+          <span className="hero-signal" aria-hidden="true">findthat.net</span>
+          <svg className="hero-signal-defs" aria-hidden="true" width="0" height="0">
+            <defs>
+              <filter id="letter-wave" x="-15%" y="-40%" width="130%" height="180%" primitiveUnits="objectBoundingBox">
+                <feMorphology in="SourceGraphic" operator="dilate" radius=".004 .018" result="outer">
+                  <animate attributeName="radius" values=".004 .018;.021 .092;.021 .092" keyTimes="0;.75;1" dur="4s" repeatCount="indefinite" />
+                </feMorphology>
+                <feMorphology in="SourceGraphic" operator="dilate" radius=".002 .009" result="inner">
+                  <animate attributeName="radius" values=".002 .009;.019 .083;.019 .083" keyTimes="0;.75;1" dur="4s" repeatCount="indefinite" />
+                </feMorphology>
+                <feComposite in="outer" in2="inner" operator="out" result="wave" />
+                <feMorphology in="SourceGraphic" operator="dilate" radius=".012 .052" result="echoOuter">
+                  <animate attributeName="radius" values=".012 .052;.029 .126;.029 .126" keyTimes="0;.75;1" dur="4s" repeatCount="indefinite" />
+                </feMorphology>
+                <feMorphology in="SourceGraphic" operator="dilate" radius=".010 .043" result="echoInner">
+                  <animate attributeName="radius" values=".010 .043;.027 .117;.027 .117" keyTimes="0;.75;1" dur="4s" repeatCount="indefinite" />
+                </feMorphology>
+                <feComposite in="echoOuter" in2="echoInner" operator="out" />
+                <feComponentTransfer><feFuncA type="linear" slope=".55" /></feComponentTransfer>
+                <feMerge><feMergeNode in="wave" /><feMergeNode /></feMerge>
+              </filter>
+            </defs>
+          </svg>
+        </h1>
         <p className="hero-description">China: Made easy. Get more, for less.</p>
         <DiscoverySearch query={draft} onChange={setDraft} onSearch={() => {
           setState({ query: draft.trim() });
