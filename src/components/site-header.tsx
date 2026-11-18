@@ -5,10 +5,10 @@ export function SiteHeader() {
   return (
     <header className="header">
       <div className="shell header-inner">
-        <Link className="wordmark" href="/" aria-label="FindThat home">findthat<span>.</span>net</Link>
+        <Link className="wordmark striped-wordmark" data-shadow="findthat.net" href="/" aria-label="FindThat home">findthat.net</Link>
         <nav aria-label="Main navigation">
-          <a className="nav-link" href="#discover">Discover</a>
-          <a className="nav-link" href="#qc"><ScanLine size={15} aria-hidden="true" /> QC photos</a>
+          <Link className="nav-link" href="/#discover">Discover</Link>
+          <Link className="nav-link" href="/#qc"><ScanLine size={15} aria-hidden="true" /> QC photos</Link>
         </nav>
       </div>
     </header>

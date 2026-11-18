@@ -6,12 +6,9 @@ import { DiscoveryControls, DiscoverySearch } from "@/components/discovery-contr
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
 import { filterCatalog } from "@/lib/catalog/filter";
-import { categories, marketplaces, sorts, type CatalogItem, type CatalogQuery, type QcImage } from "@/lib/catalog/types";
+import { categories, marketplaces, sorts, type CatalogItem, type CatalogQuery } from "@/lib/catalog/types";
 
-export function Discovery({ items, photosBySlug }: {
-  items: CatalogItem[];
-  photosBySlug: Record<string, QcImage[]>;
-}) {
+export function Discovery({ items }: { items: CatalogItem[] }) {
   const [state, setState] = useState<CatalogQuery>({});
   const [draft, setDraft] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
@@ -44,7 +41,7 @@ export function Discovery({ items, photosBySlug }: {
   return (
     <main id="main">
       <section className="shell hero" aria-labelledby="hero-title">
-        <h1 id="hero-title" data-shadow="findthat.net">findthat.net</h1>
+        <h1 id="hero-title" className="striped-wordmark" data-shadow="findthat.net">findthat.net</h1>
         <p className="hero-description">China: Made easy. Get more, for less.</p>
         <DiscoverySearch query={draft} onChange={setDraft} onSearch={() => {
           setState({ query: draft.trim() });
@@ -73,7 +70,7 @@ export function Discovery({ items, photosBySlug }: {
         <div className="catalog-controls"><DiscoveryControls state={state} onChange={updateFilters} /></div>
         {results.length ? (
           <div className="product-grid">
-            {results.map((item) => <ProductCard key={item.slug} item={item} qcImages={photosBySlug[item.slug] ?? []}
+            {results.map((item) => <ProductCard key={item.slug} item={item}
               priority={item.slug === items[0]?.slug} />)}
           </div>
         ) : (
@@ -90,7 +87,7 @@ export function Discovery({ items, photosBySlug }: {
           <div className="qc-icon"><ScanLine size={22} strokeWidth={1.5} aria-hidden="true" /></div>
           <div>
             <h2 id="qc-title">Quality check photos</h2>
-            <p>Open a product to inspect sample warehouse photos of its materials and construction.</p>
+            <p>Open a product to inspect its sample warehouse photos and browse the full group.</p>
           </div>
           <Button type="button" variant="outline" className="qc-action" onClick={() => {
             setDraft("");

@@ -37,6 +37,7 @@ export interface Product {
 
 export interface QcImage extends Photo {
   id: string;
+  groupId: string;
   productSlug: string;
   view: "front" | "construction" | "label" | "sole";
   capturedAt: string;

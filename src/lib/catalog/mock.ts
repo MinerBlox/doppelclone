@@ -28,10 +28,10 @@ export const products: Product[] = entries.map(
 );
 
 export const qcImages: QcImage[] = [
-  { id: "court-front", productSlug: "court-01", view: "front", capturedAt: "2026-11-16", src: "/catalog/qc-court-front.webp", alt: "Sample warehouse photo showing the sneakers from above" },
-  { id: "court-sole", productSlug: "court-01", view: "sole", capturedAt: "2026-11-16", src: "/catalog/qc-court-sole.webp", alt: "Sample warehouse photo showing the sneaker outsole" },
-  { id: "jacket-front", productSlug: "work-jacket", view: "front", capturedAt: "2026-11-14", src: "/catalog/qc-jacket-front.webp", alt: "Sample warehouse photo showing the jacket laid flat beside a measuring tape" },
-  { id: "jacket-seam", productSlug: "work-jacket", view: "construction", capturedAt: "2026-11-14", src: "/catalog/qc-jacket-seam.webp", alt: "Sample warehouse photo of the jacket zipper and seam construction" },
+  { id: "court-front", groupId: "court-sample", productSlug: "court-01", view: "front", capturedAt: "2026-11-16", src: "/catalog/qc-court-front.webp", alt: "Sample warehouse photo showing the sneakers from above" },
+  { id: "court-sole", groupId: "court-sample", productSlug: "court-01", view: "sole", capturedAt: "2026-11-16", src: "/catalog/qc-court-sole.webp", alt: "Sample warehouse photo showing the sneaker outsole" },
+  { id: "jacket-front", groupId: "jacket-sample", productSlug: "work-jacket", view: "front", capturedAt: "2026-11-14", src: "/catalog/qc-jacket-front.webp", alt: "Sample warehouse photo showing the jacket laid flat beside a measuring tape" },
+  { id: "jacket-seam", groupId: "jacket-sample", productSlug: "work-jacket", view: "construction", capturedAt: "2026-11-14", src: "/catalog/qc-jacket-seam.webp", alt: "Sample warehouse photo of the jacket zipper and seam construction" },
 ];
 
 export const collections: Collection[] = [{
