@@ -78,10 +78,10 @@ export function Discovery({ items, collections }: { items: CatalogItem[]; collec
       </section>
 
       <section id="discover" className="shell catalog" aria-labelledby="discover-title">
+        <div className="discover-section-band"><DiscoverSections active={section} onSelect={setSection} /></div>
         <div className="catalog-heading">
           <h2 id="discover-title" ref={heading} tabIndex={-1}>Discover</h2>
         </div>
-        <DiscoverSections active={section} onSelect={setSection} />
         {section !== "popular" ? (
           <DiscoverSectionContent active={section} items={items} collections={collections}
             onSeller={(sellerId) => { reset(); setState({ sellerId }); heading.current?.focus(); }}

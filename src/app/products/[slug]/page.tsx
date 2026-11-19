@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ScanLine } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { ProductMedia, QcGallery } from "@/components/product-media";
 import { AgentLinks } from "@/components/agent-links";
+import { CurrencyPrice } from "@/components/currency-price";
 import { catalog } from "@/lib/catalog/service";
 import type { QcImage } from "@/lib/catalog/types";
 
@@ -33,7 +34,6 @@ export default async function ProductPage({ params }: Props) {
   }
   const groups = Array.from(photosByGroup, ([id, photos]) => ({ id, photos }));
   const titlePhotos = [item.photo, ...photos];
-  const price = new Intl.NumberFormat("en", { style: "currency", currency: "CNY", maximumFractionDigits: 0 }).format(item.priceCny);
 
   return (
     <main className="shell product-page" id="main">
@@ -43,17 +43,13 @@ export default async function ProductPage({ params }: Props) {
         <section className="product-detail" aria-labelledby="product-heading">
           <p className="eyebrow">{item.listing.marketplace} <span aria-hidden="true">/</span> {item.category}</p>
           <h1 id="product-heading">{item.name}</h1>
-          <p className="detail-price">{price}</p>
+          <CurrencyPrice amount={item.priceCny} />
           <dl className="product-facts">
             <div><dt>Colour</dt><dd>{item.color}</dd></div>
             <div><dt>Seller</dt><dd>{item.seller.name}</dd></div>
             <div><dt>Ships from</dt><dd>{item.seller.city}</dd></div>
           </dl>
           <AgentLinks />
-          {photos.length > 0 && <a className="detail-qc-link" href="#product-qc">
-            <ScanLine size={17} aria-hidden="true" /> Browse {photos.length} QC photos
-          </a>}
-          <p className="sample-note">Sample listing from the FindThat preview catalog.</p>
         </section>
       </div>
 

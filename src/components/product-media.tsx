@@ -88,14 +88,26 @@ export function QcGallery({ groups }: { groups: Group[] }) {
   const [paused, setPaused] = useState(false);
   const [hover, setHover] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [touching, setTouching] = useState(false);
   const [viewer, setViewer] = useState<Viewer | null>(null);
   const rail = useRef<HTMLDivElement>(null);
   const cycle = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
+  const resumeTimer = useRef<ReturnType<typeof setTimeout>>(null);
+  const restoringFocus = useRef(false);
   const canLoop = tiles.length > 1;
 
-  useAutoScroll(rail, cycle, canLoop && !reducedMotion && !paused && !hover && !focused && !viewer);
+  useAutoScroll(rail, cycle, canLoop && !reducedMotion && !paused && !hover && !focused && !touching && !viewer);
+
+  useEffect(() => () => {
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+  }, []);
+
+  function releaseTouch() {
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => setTouching(false), 750);
+  }
 
   const viewerOpen = viewer !== null;
   useEffect(() => {
@@ -121,9 +133,7 @@ export function QcGallery({ groups }: { groups: Group[] }) {
 
   const selected = viewer?.group.photos[viewer.index];
   return (
-    <div className="qc-gallery" onPointerEnter={(event) => { if (event.pointerType === "mouse") setHover(true); }}
-      onPointerLeave={() => setHover(false)} onFocus={() => setFocused(true)}
-      onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
+    <div className="qc-gallery">
       {canLoop && <div className="qc-controls" role="group" aria-label="QC carousel controls">
         <button type="button" className="gallery-control" aria-label="Previous QC photo" onClick={() => scroll(-1)}><ChevronLeft size={18} /></button>
         {!reducedMotion && <button type="button" className="gallery-control" aria-label={paused ? "Play QC slideshow" : "Pause QC slideshow"}
@@ -131,14 +141,35 @@ export function QcGallery({ groups }: { groups: Group[] }) {
         <button type="button" className="gallery-control" aria-label="Next QC photo" onClick={() => scroll(1)}><ChevronRight size={18} /></button>
       </div>}
       <div ref={rail} className={canLoop ? "qc-rail" : "qc-rail qc-rail-single"}
-        onPointerDown={(event) => { if (event.pointerType !== "mouse") setPaused(true); }}>
+        onPointerLeave={() => setHover(false)}
+        onFocus={(event) => setFocused(!restoringFocus.current && event.target.matches(":focus-visible"))}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
+        }}
+        onPointerDown={(event) => {
+          setFocused(false);
+          if (event.pointerType !== "mouse") {
+            setTouching(true);
+            releaseTouch();
+          }
+        }}
+        onPointerUp={(event) => { if (event.pointerType !== "mouse") releaseTouch(); }}
+        onPointerCancel={releaseTouch}
+        onScroll={() => { if (touching) releaseTouch(); }}>
         {Array.from({ length: canLoop ? 5 : 1 }, (_, copy) => (
           <div className="qc-cycle" ref={copy === 0 ? cycle : undefined} key={copy} aria-hidden={copy ? true : undefined}>
             {tiles.map(({ group, photo, index }) => (
               <button className="qc-tile" type="button" key={photo.id} tabIndex={copy ? -1 : undefined}
                 aria-label={`Enlarge ${views[photo.view].toLowerCase()} photo and browse its QC group`}
-                onClick={(event) => { opener.current = event.currentTarget; setViewer({ group, index }); }}>
-                <span className="qc-tile-image">
+                onClick={(event) => {
+                  opener.current = event.currentTarget;
+                  setHover(false);
+                  setFocused(false);
+                  setViewer({ group, index });
+                }}>
+                <span className="qc-tile-image"
+                  onPointerEnter={(event) => { if (event.pointerType === "mouse") setHover(true); }}
+                  onPointerLeave={() => setHover(false)}>
                   <Image src={publicAsset(photo.src)} alt={photo.alt} fill sizes="(max-width: 620px) 68vw, 310px" />
                   <span className="qc-enlarge"><Maximize2 size={15} aria-hidden="true" /></span>
                 </span>
@@ -150,7 +181,14 @@ export function QcGallery({ groups }: { groups: Group[] }) {
       </div>
 
       <dialog className="qc-viewer" ref={dialog} aria-labelledby="qc-viewer-title"
-        onClose={() => { setViewer(null); opener.current?.focus({ preventScroll: true }); }}
+        onClose={() => {
+          restoringFocus.current = true;
+          opener.current?.focus({ preventScroll: true });
+          restoringFocus.current = false;
+          setHover(Boolean(rail.current?.querySelector(".qc-tile-image:hover")));
+          setFocused(false);
+          setViewer(null);
+        }}
         onClick={(event) => { if (event.currentTarget === event.target) dialog.current?.close(); }}
         onKeyDown={(event) => {
           if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;

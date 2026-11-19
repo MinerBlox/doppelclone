@@ -10,10 +10,10 @@ const storageKey = "findthat:default-agent";
 
 export function AgentLinks() {
   const [preferred, setPreferred] = useState<Agent>(agents[0]);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [mode, setMode] = useState<AgentAction>("copy");
   const [notice, setNotice] = useState<{ text: string; success: boolean } | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  const toast = useRef<HTMLDivElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
   const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -29,6 +29,13 @@ export function AgentLinks() {
       if (timeout.current !== null) clearTimeout(timeout.current);
     };
   }, []);
+
+  useEffect(() => {
+    const popup = toast.current;
+    if (!popup?.showPopover) return;
+    if (notice && !popup.matches(":popover-open")) popup.showPopover();
+    if (!notice && popup.matches(":popover-open")) popup.hidePopover();
+  }, [notice]);
 
   function announce(text: string, success = true) {
     if (timeout.current !== null) clearTimeout(timeout.current);
@@ -49,7 +56,6 @@ export function AgentLinks() {
   function open(action: AgentAction, button: HTMLButtonElement) {
     opener.current = button;
     setMode(action);
-    setMenuOpen(true);
     setNotice(null);
     dialog.current?.showModal();
   }
@@ -78,11 +84,11 @@ export function AgentLinks() {
         <button type="button" className="agent-more" aria-haspopup="dialog"
           onClick={(event) => open("copy", event.currentTarget)}><Plus size={17} aria-hidden="true" /> More agents</button>
       </div>
-      <div className="agent-inline-feedback">{!menuOpen && feedback}</div>
+      <div className="agent-top-feedback" ref={toast} popover="manual">{feedback}</div>
 
       <dialog ref={dialog} className="agent-dialog" aria-labelledby="agent-dialog-title"
         onClick={(event) => { if (event.target === event.currentTarget) dialog.current?.close(); }}
-        onClose={() => { setMenuOpen(false); opener.current?.focus({ preventScroll: true }); }}>
+        onClose={() => opener.current?.focus({ preventScroll: true })}>
         <div className="agent-dialog-panel">
           <header className="agent-dialog-header">
             <div>
@@ -101,7 +107,6 @@ export function AgentLinks() {
               {mode === "copy" ? <Copy size={16} aria-hidden="true" /> : agent === preferred ? <Check size={18} aria-hidden="true" /> : null}
             </button>)}
           </div>
-          <div className="agent-menu-feedback">{menuOpen && feedback}</div>
         </div>
       </dialog>
     </div>

@@ -1,5 +1,6 @@
 import * as Select from "@radix-ui/react-select";
-import { ArrowRight, Check, ChevronDown, Search } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Search, SlidersHorizontal } from "lucide-react";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { marketplaces, sorts, type CatalogQuery, type Sort } from "@/lib/catalog/types";
 
@@ -10,16 +11,17 @@ const sortLabels: Record<Sort, string> = {
   "price-desc": "Price: high to low",
 };
 
-function FilterSelect({ label, value, options, onChange }: {
+export function FilterSelect({ label, value, displayValue, options, onChange }: {
   label: string;
   value: string;
+  displayValue?: string;
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
 }) {
   return (
     <Select.Root value={value} onValueChange={onChange}>
       <Select.Trigger className="filter-select-trigger" aria-label={label}>
-        <Select.Value />
+        <Select.Value>{displayValue ?? options.find((option) => option.value === value)?.label}</Select.Value>
         <Select.Icon asChild><ChevronDown size={15} strokeWidth={1.7} aria-hidden="true" /></Select.Icon>
       </Select.Trigger>
       <Select.Portal>
@@ -67,16 +69,34 @@ export function DiscoveryControls({ state, onChange }: {
   state: CatalogQuery;
   onChange: (patch: Partial<CatalogQuery>) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const id = useId();
+  const activeCount = Number(Boolean(state.marketplace)) + Number(Boolean(state.sort && state.sort !== "featured")) + Number(Boolean(state.qcOnly));
   return (
-      <div className="filter-form" role="group" aria-label="Filter and sort products">
+    <>
+      <button type="button" className="filter-disclosure" aria-expanded={expanded} aria-controls={id}
+        onClick={() => setExpanded((value) => !value)}>
+        <SlidersHorizontal size={15} strokeWidth={1.7} aria-hidden="true" />
+        Filters{activeCount > 0 && <span className="filter-count">{activeCount}</span>}
+      </button>
+      <div id={id} className="filter-form filter-panel" role="group" aria-label="Filter and sort products" hidden={!expanded}>
+        <div className="filter-field">
+          <span className="filter-label" aria-hidden="true">Marketplace</span>
         <FilterSelect label="Marketplace" value={state.marketplace ?? "all"} options={marketplaceOptions}
           onChange={(source) => onChange({ marketplace: marketplaces.find((marketplace) => marketplace === source) })} />
+        </div>
+        <div className="filter-field">
+          <span className="filter-label" aria-hidden="true">Sort by</span>
         <FilterSelect label="Sort products" value={state.sort ?? "featured"} options={sortOptions}
           onChange={(value) => onChange({ sort: sorts.find((sort) => sort === value) })} />
+        </div>
         <label className="qc-toggle">
-          <input type="checkbox" checked={state.qcOnly ?? false}
-            onChange={(event) => onChange({ qcOnly: event.currentTarget.checked })} /> QC only
+          <span>QC only</span>
+          <input className="sr-only" type="checkbox" role="switch" checked={state.qcOnly ?? false}
+            onChange={(event) => onChange({ qcOnly: event.currentTarget.checked })} />
+          <span className="qc-switch-track" aria-hidden="true" />
         </label>
       </div>
+    </>
   );
 }

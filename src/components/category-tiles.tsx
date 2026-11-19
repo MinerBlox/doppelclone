@@ -15,7 +15,7 @@ export function CategoryTiles({ items, selected, onSelect }: {
         return <button key={kind} type="button" className="category-tile"
           aria-pressed={selected === kind} onClick={() => onSelect(kind)}>
           <span className="category-tile-image">
-            <Image src={publicAsset(item.photo.src)} alt="" fill sizes="(max-width: 620px) 79px, 100px" />
+            <Image src={publicAsset(item.photo.src)} alt="" fill sizes="(max-width: 620px) 38px, 52px" />
           </span>
           <span>{kind}</span>
         </button>;
