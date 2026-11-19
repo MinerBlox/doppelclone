@@ -4,16 +4,22 @@ import { ArrowRight, ScanLine } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DiscoveryControls, DiscoverySearch } from "@/components/discovery-controls";
 import { ProductCard } from "@/components/product-card";
+import { CategoryTiles } from "@/components/category-tiles";
+import { DiscoverSections, DiscoverSectionContent, type DiscoverSection } from "@/components/discover-sections";
 import { Button } from "@/components/ui/button";
 import { filterCatalog } from "@/lib/catalog/filter";
-import { categories, marketplaces, sorts, type CatalogItem, type CatalogQuery } from "@/lib/catalog/types";
+import { categories, marketplaces, productKinds, sorts, type CatalogItem, type CatalogQuery, type Collection } from "@/lib/catalog/types";
 
-export function Discovery({ items }: { items: CatalogItem[] }) {
+export function Discovery({ items, collections }: { items: CatalogItem[]; collections: Collection[] }) {
   const [state, setState] = useState<CatalogQuery>({});
   const [draft, setDraft] = useState("");
+  const [section, setSection] = useState<DiscoverSection>("popular");
+  const [outfit, setOutfit] = useState<string>();
   const heading = useRef<HTMLHeadingElement>(null);
-  const results = filterCatalog(items, state);
-  const filtered = Boolean(state.query || state.category || state.marketplace || state.qcOnly || (state.sort && state.sort !== "featured"));
+  const collection = collections.find(({ slug }) => slug === outfit);
+  const results = filterCatalog(collection ? items.filter(({ slug }) => collection.productSlugs.includes(slug)) : items, state);
+  const activeLabel = collection?.title ?? state.kind ?? items.find(({ seller }) => seller.id === state.sellerId)?.seller.name;
+  const filtered = Boolean(activeLabel || state.query || state.category || state.marketplace || state.qcOnly || (state.sort && state.sort !== "featured"));
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -23,6 +29,7 @@ export function Discovery({ items }: { items: CatalogItem[] }) {
     setState({
       query,
       category: categories.find((category) => category === params.get("category")),
+      kind: productKinds.find((kind) => kind === params.get("kind")),
       marketplace: marketplaces.find((marketplace) => marketplace === params.get("source")),
       qcOnly: params.get("qc") === "1",
       sort: sorts.find((sort) => sort === params.get("sort")),
@@ -36,6 +43,8 @@ export function Discovery({ items }: { items: CatalogItem[] }) {
   function reset() {
     setDraft("");
     setState({});
+    setOutfit(undefined);
+    setSection("popular");
   }
 
   return (
@@ -44,6 +53,8 @@ export function Discovery({ items }: { items: CatalogItem[] }) {
         <h1 id="hero-title" className="striped-wordmark" data-shadow="findthat.net">findthat.net</h1>
         <p className="hero-description">China: Made easy. Get more, for less.</p>
         <DiscoverySearch query={draft} onChange={setDraft} onSearch={() => {
+          reset();
+          setDraft(draft);
           setState({ query: draft.trim() });
           heading.current?.focus();
         }} />
@@ -52,22 +63,37 @@ export function Discovery({ items }: { items: CatalogItem[] }) {
           {marketplaces.map((marketplace) => (
             <button key={marketplace} type="button" aria-pressed={state.marketplace === marketplace}
               onClick={() => {
+                setSection("popular");
                 updateFilters({ marketplace: state.marketplace === marketplace ? undefined : marketplace });
                 heading.current?.focus();
               }}>{marketplace}</button>
           ))}
         </div>
+        <CategoryTiles items={items} selected={state.kind} onSelect={(kind) => {
+          const selected = state.kind === kind ? undefined : kind;
+          reset();
+          setState({ kind: selected });
+          heading.current?.focus();
+        }} />
       </section>
 
       <section id="discover" className="shell catalog" aria-labelledby="discover-title">
         <div className="catalog-heading">
           <h2 id="discover-title" ref={heading} tabIndex={-1}>Discover</h2>
-          <div className="catalog-summary">
-            <span role="status">{results.length} {results.length === 1 ? "item" : "items"}</span>
-            {filtered && <button type="button" onClick={reset}>Clear filters</button>}
-          </div>
         </div>
-        <div className="catalog-controls"><DiscoveryControls state={state} onChange={updateFilters} /></div>
+        <DiscoverSections active={section} onSelect={setSection} />
+        {section !== "popular" ? (
+          <DiscoverSectionContent active={section} items={items} collections={collections}
+            onSeller={(sellerId) => { reset(); setState({ sellerId }); heading.current?.focus(); }}
+            onOutfit={(slug) => { reset(); setOutfit(slug); heading.current?.focus(); }} />
+        ) : <>
+          <div className="catalog-toolbar">
+            <div className="catalog-summary">
+              <span role="status">{activeLabel && `${activeLabel} · `}{results.length} {results.length === 1 ? "item" : "items"}</span>
+              {filtered && <button type="button" onClick={reset}>Clear filters</button>}
+            </div>
+            <DiscoveryControls state={state} onChange={updateFilters} />
+          </div>
         {results.length ? (
           <div className="product-grid">
             {results.map((item) => <ProductCard key={item.slug} item={item}
@@ -80,6 +106,7 @@ export function Discovery({ items }: { items: CatalogItem[] }) {
             <Button type="button" variant="outline" onClick={reset}>See all items</Button>
           </div>
         )}
+        </>}
       </section>
 
       <section id="qc" className="shell qc-section" aria-labelledby="qc-title">
@@ -90,7 +117,7 @@ export function Discovery({ items }: { items: CatalogItem[] }) {
             <p>Open a product to inspect its sample warehouse photos and browse the full group.</p>
           </div>
           <Button type="button" variant="outline" className="qc-action" onClick={() => {
-            setDraft("");
+            reset();
             setState({ qcOnly: true });
             heading.current?.focus();
           }}>Browse QC photos <ArrowRight size={15} aria-hidden="true" /></Button>

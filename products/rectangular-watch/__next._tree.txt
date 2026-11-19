@@ -1,6 +1,6 @@
-:HL["/doppelclone/_next/static/chunks/1rcqx2p2n28rk.css","style"]
+:HL["/doppelclone/_next/static/chunks/0cp3is_df2d-n.css","style"]
 :HC["/",""]
 3:[["children",{"s":"__PAGE__","h":160}]]
 2:[["children",{"s":{"n":"slug","t":"d","k":"rectangular-watch","s":[]},"h":65632,"c":"$Q3"}]]
 1:[["children",{"s":"products","h":131168,"c":"$Q2"}]]
-0:{"b":"0l0B52Esn6cTG7WxaXv50","t":{"t":{"s":"","h":131152,"c":"$Q1"}}}
+0:{"b":"6Xb3e2gTZcwUdJrnWQy62","t":{"t":{"s":"","h":131152,"c":"$Q1"}}}

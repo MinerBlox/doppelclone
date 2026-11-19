@@ -3,6 +3,8 @@ export type Marketplace = (typeof marketplaces)[number];
 
 export const categories = ["Footwear", "Outerwear", "Clothing", "Bags", "Accessories"] as const;
 export type Category = (typeof categories)[number];
+export const productKinds = ["Shoes", "Tees", "Jackets", "Puffers", "Accessories", "Watches", "Hoodies", "Sweats", "Jeans"] as const;
+export type ProductKind = (typeof productKinds)[number];
 
 export interface SourceListing {
   marketplace: Marketplace;
@@ -27,6 +29,7 @@ export interface Product {
   name: string;
   color: string;
   category: Category;
+  kind: ProductKind;
   priceCny: number;
   sellerId: string;
   listing: SourceListing;
@@ -63,6 +66,8 @@ export type Sort = (typeof sorts)[number];
 export interface CatalogQuery {
   query?: string;
   category?: Category;
+  kind?: ProductKind;
+  sellerId?: string;
   marketplace?: Marketplace;
   qcOnly?: boolean;
   sort?: Sort;
