@@ -69,20 +69,20 @@ export function CurrencyPrice({ amount }: { amount: number }) {
 
   const rate = currency === "CNY" ? undefined : rates[currency];
   const local = rate && new Intl.NumberFormat(currencies[currency].locale, { style: "currency", currency }).format(amount * rate.value);
+  const yuan = `¥${amount.toLocaleString("en-US")}`;
 
   return (
-    <div className="detail-price-row">
-      <p className="detail-price" aria-live="polite" title={rate ? `Estimated using Frankfurter reference rates for ${rate.date}` : undefined}>
-        {local && <><span className="detail-price-converted">{local}</span><span className="detail-price-separator" aria-hidden="true">~~</span></>}
-        <strong>¥{amount.toLocaleString("en-US")}</strong>
-      </p>
-      <div className="currency-select">
-        <FilterSelect label="Display currency" value={currency} displayValue={currency} options={currencyOptions}
+    <div className="detail-price-row" title={rate ? `Estimated using Frankfurter reference rates for ${rate.date}` : undefined}>
+      <div className="detail-price">
+        <FilterSelect label="Display currency" className={local ? "currency-price-trigger" : "currency-price-trigger currency-price-yuan"}
+          value={currency} displayValue={local || yuan} options={currencyOptions}
           onChange={(value) => {
             const choice = value as Currency;
             setCurrency(choice);
             try { localStorage.setItem(storageKey, choice); } catch { /* Keep the current preference. */ }
           }} />
+        {local && <><span className="detail-price-separator" aria-hidden="true">≈</span><strong>{yuan}</strong></>}
+        <span className="sr-only" role="status">{local ? `${local} estimated for ${yuan}` : yuan}</span>
       </div>
     </div>
   );
