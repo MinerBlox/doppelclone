@@ -171,10 +171,10 @@ a, button, input, select { -webkit-tap-highlight-color: transparent; }
 .product-detail h1 { margin-top: 12px; font-size: clamp(30px, 4.65vw, 65px); font-weight: 650; line-height: 1.02; letter-spacing: -.065em; }
 .detail-price-row { margin-top: 17px; }
 .detail-price { display: flex; align-items: center; gap: .28em; font-size: clamp(22px, 3vw, 34px); line-height: 1.15; letter-spacing: -.035em; white-space: nowrap; }
-.detail-price strong { font-size: .43em; font-weight: 700; }
+.detail-price strong { font-size: .43em; font-weight: 400; }
 .detail-price-separator { color: var(--muted-foreground); font-size: .43em; font-weight: 500; }
 .detail-price .currency-price-trigger { width: auto; min-height: 38px; padding: 0; gap: .18em; border: 0; border-radius: 4px; background: transparent; color: #424741; font: inherit; font-weight: 530; letter-spacing: inherit; transition: scale 160ms ease, color 160ms ease; }
-.detail-price .currency-price-yuan { color: var(--foreground); font-weight: 700; }
+.detail-price .currency-price-yuan { color: var(--foreground); font-weight: 400; }
 .detail-price .currency-price-trigger svg { width: .5em; height: .5em; transition: rotate 160ms ease; }
 .detail-price .currency-price-trigger[data-state="open"] svg { rotate: 180deg; }
 .detail-price .currency-price-trigger:hover, .detail-price .currency-price-trigger[data-state="open"] { color: var(--foreground); background: transparent; }
