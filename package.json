@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc -p worker/tsconfig.json",
+    "test:lookup": "tsc -p worker/tsconfig.test.json && node --test .lookup-tests/worker/tests/lookup.test.js"
   },
   "engines": {
     "node": ">=20.9.0"

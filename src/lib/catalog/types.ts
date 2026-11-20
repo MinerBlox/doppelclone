@@ -35,6 +35,7 @@ export interface ProductStyle {
   name: string;
   swatch?: string;
   photo?: Photo;
+  priceCny?: number;
 }
 
 export interface Product {
@@ -54,11 +55,14 @@ export interface Product {
 
 export interface QcImage extends Photo {
   id: string;
-  groupId: string;
+  groupId?: string;
+  sourceAgent?: string;
+  originalProductId?: string;
+  skuId?: string;
   styleId?: string;
-  productSlug: string;
-  view: "front" | "construction" | "label" | "sole";
-  capturedAt: string;
+  productSlug?: string;
+  view?: "front" | "construction" | "label" | "sole";
+  capturedAt?: string;
 }
 
 export interface Collection {

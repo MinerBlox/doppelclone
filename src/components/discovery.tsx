@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, ScanLine } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DiscoveryControls, DiscoverySearch } from "@/components/discovery-controls";
 import { ProductCard } from "@/components/product-card";
@@ -8,6 +9,8 @@ import { CategoryTiles } from "@/components/category-tiles";
 import { DiscoverSections, DiscoverSectionContent, type DiscoverSection } from "@/components/discover-sections";
 import { Button } from "@/components/ui/button";
 import { filterCatalog } from "@/lib/catalog/filter";
+import { looksLikeUrl, parseMarketplaceUrl } from "@/lib/catalog/marketplace";
+import { lookupProduct, lookupResultUrl } from "@/lib/lookup/client";
 import { categories, marketplaces, productKinds, sorts, type CatalogItem, type CatalogQuery, type Collection } from "@/lib/catalog/types";
 
 export function Discovery({ items, collections }: { items: CatalogItem[]; collections: Collection[] }) {
@@ -15,11 +18,16 @@ export function Discovery({ items, collections }: { items: CatalogItem[]; collec
   const [draft, setDraft] = useState("");
   const [section, setSection] = useState<DiscoverSection>("popular");
   const [outfit, setOutfit] = useState<string>();
+  const [lookupState, setLookupState] = useState<{ status: "loading" | "error"; message: string }>();
+  const pendingLookup = useRef<AbortController>(null);
+  const router = useRouter();
   const heading = useRef<HTMLHeadingElement>(null);
   const collection = collections.find(({ slug }) => slug === outfit);
   const results = filterCatalog(collection ? items.filter(({ slug }) => collection.productSlugs.includes(slug)) : items, state);
   const activeLabel = collection?.title ?? state.kind ?? items.find(({ seller }) => seller.id === state.sellerId)?.seller.name;
   const filtered = Boolean(activeLabel || state.query || state.category || state.marketplace || state.qcOnly || (state.sort && state.sort !== "featured"));
+
+  useEffect(() => () => pendingLookup.current?.abort(), []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -41,10 +49,41 @@ export function Discovery({ items, collections }: { items: CatalogItem[]; collec
   }
 
   function reset() {
+    pendingLookup.current?.abort();
+    setLookupState(undefined);
     setDraft("");
     setState({});
     setOutfit(undefined);
     setSection("popular");
+  }
+
+  async function search() {
+    const query = draft.trim();
+    if (!looksLikeUrl(query)) {
+      reset();
+      setDraft(draft);
+      setState({ query });
+      heading.current?.focus();
+      return;
+    }
+
+    pendingLookup.current?.abort();
+    const listing = parseMarketplaceUrl(query);
+    if (!listing) {
+      setLookupState({ status: "error", message: "Paste a direct 1688, Taobao, or Weidian product link." });
+      return;
+    }
+    const controller = new AbortController();
+    pendingLookup.current = controller;
+    setLookupState({ status: "loading", message: `Looking up this ${listing.marketplace} listing…` });
+    try {
+      const result = await lookupProduct(listing, controller.signal);
+      if (controller.signal.aborted) return;
+      if (result.ok) router.push(lookupResultUrl(listing));
+      else setLookupState({ status: "error", message: result.message });
+    } catch {
+      // A newer search or route change cancelled this lookup.
+    }
   }
 
   return (
@@ -52,12 +91,14 @@ export function Discovery({ items, collections }: { items: CatalogItem[]; collec
       <section className="shell hero" aria-labelledby="hero-title">
         <h1 id="hero-title" className="striped-wordmark" data-shadow="findthat.net">findthat.net</h1>
         <p className="hero-description">China: Made easy. Get more, for less.</p>
-        <DiscoverySearch query={draft} onChange={setDraft} onSearch={() => {
-          reset();
-          setDraft(draft);
-          setState({ query: draft.trim() });
-          heading.current?.focus();
-        }} />
+        <DiscoverySearch query={draft} pending={lookupState?.status === "loading"} onChange={(value) => {
+          pendingLookup.current?.abort();
+          setLookupState(undefined);
+          setDraft(value);
+        }} onSearch={() => void search()} />
+        {lookupState && <p className="style-photo-note" role={lookupState.status === "error" ? "alert" : "status"}>
+          {lookupState.message}
+        </p>}
         <div className="hero-sources" role="group" aria-label="Explore by marketplace">
           <span>Explore</span>
           {marketplaces.map((marketplace) => (
@@ -89,7 +130,7 @@ export function Discovery({ items, collections }: { items: CatalogItem[]; collec
         ) : <>
           <div className="catalog-toolbar">
             <div className="catalog-summary">
-              <span role="status">{activeLabel && `${activeLabel} · `}{results.length} {results.length === 1 ? "item" : "items"}</span>
+              <span role="status">{activeLabel && `${activeLabel} · `}{results.length} {results.length === 1 ? "item" : "items"} · Demo catalog</span>
               {filtered && <button type="button" onClick={reset}>Clear filters</button>}
             </div>
             <DiscoveryControls state={state} onChange={updateFilters} />

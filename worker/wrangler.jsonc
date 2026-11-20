@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "findthat-lookup",
+  "main": "index.ts",
+  "compatibility_date": "2026-11-20",
+  "vars": {
+    "ALLOWED_ORIGINS": "https://minerblox.github.io,http://localhost:3000,http://127.0.0.1:3000"
+  },
+  "ratelimits": [
+    { "name": "LOOKUP_RATE_LIMIT", "namespace_id": "1001", "simple": { "limit": 12, "period": 60 } }
+  ]
+}

@@ -46,22 +46,23 @@ const marketplaceOptions = [
 ];
 const sortOptions = sorts.map((sort) => ({ value: sort, label: sortLabels[sort] }));
 
-export function DiscoverySearch({ query, onChange, onSearch }: {
+export function DiscoverySearch({ query, pending, onChange, onSearch }: {
   query: string;
+  pending?: boolean;
   onChange: (query: string) => void;
   onSearch: () => void;
 }) {
   return (
-    <form role="search" className="discovery-search" onSubmit={(event) => {
+    <form role="search" className="discovery-search" aria-busy={pending} onSubmit={(event) => {
       event.preventDefault();
-      onSearch();
+      if (!pending) onSearch();
     }}>
       <Search size={21} strokeWidth={1.6} aria-hidden="true" />
       <label htmlFor="discovery-query" className="sr-only">Search products or paste a marketplace link</label>
       <input id="discovery-query" name="q" type="search" value={query} onChange={(event) => onChange(event.target.value)}
-        placeholder="Search products or paste a link" maxLength={1000} />
-      <Button type="submit" className="search-submit">
-        Search <ArrowRight size={15} aria-hidden="true" />
+        placeholder="Search products or paste a link" maxLength={2048} />
+      <Button type="submit" className="search-submit" disabled={pending}>
+        {pending ? "Looking up…" : "Search"} <ArrowRight size={15} aria-hidden="true" />
       </Button>
     </form>
   );

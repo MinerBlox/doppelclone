@@ -10,9 +10,13 @@ import { publicAsset } from "@/lib/utils";
 type Group = { id: string; photos: QcImage[]; matchesStyle?: boolean };
 type Viewer = { group: Group; index: number };
 
-const views: Record<QcImage["view"], string> = {
+const views: Record<NonNullable<QcImage["view"]>, string> = {
   front: "Overview", construction: "Construction", label: "Label", sole: "Outsole",
 };
+
+function viewLabel(photo: QcImage) {
+  return photo.view ? views[photo.view] : "QC photo";
+}
 
 function wrap(index: number, count: number) {
   return (index + count) % count;
@@ -33,7 +37,7 @@ export function ProductMedia({ photos }: { photos: Photo[] }) {
         move(event.key === "ArrowLeft" ? -1 : 1);
       }}>
       <div className="product-media-frame">
-        <Image src={publicAsset(active.src)} alt={active.alt} fill preload={index === 0}
+        <Image src={publicAsset(active.src)} alt={active.alt} fill preload={index === 0} referrerPolicy="no-referrer"
           sizes="(max-width: 740px) 100vw, 570px" />
         {photos.length > 1 && <>
           <button className="media-arrow media-arrow-prev" type="button" aria-label="Previous product photo" onClick={() => move(-1)}><ChevronLeft size={21} /></button>
@@ -45,7 +49,7 @@ export function ProductMedia({ photos }: { photos: Photo[] }) {
         {photos.map((photo, photoIndex) => <button key={photo.src} type="button"
           aria-label={photoIndex === 0 ? "Show listing photo" : `Show product photo ${photoIndex + 1}`}
           aria-pressed={index === photoIndex} onClick={() => setIndex(photoIndex)}>
-          <Image src={publicAsset(photo.src)} alt="" width={64} height={64} />
+          <Image src={publicAsset(photo.src)} alt="" width={64} height={64} referrerPolicy="no-referrer" />
         </button>)}
       </div>}
     </div>
@@ -159,8 +163,8 @@ export function QcGallery({ groups, productName }: { groups: Group[]; productNam
         {Array.from({ length: canLoop ? 5 : 1 }, (_, copy) => (
           <div className="qc-cycle" ref={copy === 0 ? cycle : undefined} key={copy} aria-hidden={copy ? true : undefined}>
             {tiles.map(({ group, photo, index }) => (
-              <button className="qc-tile" type="button" key={photo.id} tabIndex={copy ? -1 : undefined}
-                aria-label={`Enlarge ${views[photo.view].toLowerCase()} photo and browse its QC group`}
+              <button className="qc-tile" type="button" key={`${group.id}:${photo.id}`} tabIndex={copy ? -1 : undefined}
+                aria-label={`Enlarge ${photo.view ? `${views[photo.view].toLowerCase()} photo` : "QC photo"} and browse its QC group`}
                 onClick={(event) => {
                   opener.current = event.currentTarget;
                   setHover(false);
@@ -170,10 +174,10 @@ export function QcGallery({ groups, productName }: { groups: Group[]; productNam
                 <span className="qc-tile-image"
                   onPointerEnter={(event) => { if (event.pointerType === "mouse") setHover(true); }}
                   onPointerLeave={() => setHover(false)}>
-                  <Image src={publicAsset(photo.src)} alt={photo.alt} fill sizes="(max-width: 620px) 68vw, 310px" />
+                  <Image src={publicAsset(photo.src)} alt={photo.alt} fill sizes="(max-width: 620px) 68vw, 310px" referrerPolicy="no-referrer" />
                   <span className="qc-enlarge"><Maximize2 size={15} aria-hidden="true" /></span>
                 </span>
-                <span className="qc-tile-label">{views[photo.view]} <span>{group.matchesStyle ? "Selected style" : `${group.photos.length} in group`}</span></span>
+                <span className="qc-tile-label">{viewLabel(photo)} <span>{group.matchesStyle ? "Selected style" : `${group.photos.length} in group`}</span></span>
               </button>
             ))}
           </div>
@@ -198,16 +202,16 @@ export function QcGallery({ groups, productName }: { groups: Group[]; productNam
         {viewer && selected && <div className="qc-viewer-content">
           <div className="qc-viewer-header">
             <div><h3 id="qc-viewer-title">QC photo group</h3>
-              <p>{productName}</p></div>
+              <p>{[productName, selected.sourceAgent, selected.capturedAt].filter(Boolean).join(" · ")}</p></div>
             <button type="button" className="gallery-control" aria-label="Close QC photos" onClick={() => dialog.current?.close()}><X size={21} /></button>
           </div>
           <div className="qc-viewer-layout">
             <div className="qc-viewer-stage">
               <div className="qc-viewer-image">
-                <Image src={publicAsset(selected.src)} alt={selected.alt} fill sizes="(max-width: 740px) 100vw, 690px" />
+                <Image src={publicAsset(selected.src)} alt={selected.alt} fill sizes="(max-width: 740px) 100vw, 690px" referrerPolicy="no-referrer" />
               </div>
               <div className="qc-viewer-footer">
-                <p className="qc-viewer-caption" aria-live="polite"><strong>{views[selected.view]}</strong><span>{viewer.index + 1} of {viewer.group.photos.length}</span></p>
+                <p className="qc-viewer-caption" aria-live="polite"><strong>{viewLabel(selected)}</strong><span>{viewer.index + 1} of {viewer.group.photos.length}</span></p>
                 {viewer.group.photos.length > 1 && <div className="qc-viewer-navigation">
                   <button className="gallery-control" type="button" aria-label="Previous photo in group" onClick={() => moveViewer(-1)}><ChevronLeft size={18} /></button>
                   <button className="gallery-control" type="button" aria-label="Next photo in group" onClick={() => moveViewer(1)}><ChevronRight size={18} /></button>
@@ -215,10 +219,10 @@ export function QcGallery({ groups, productName }: { groups: Group[]; productNam
               </div>
             </div>
             <div className="qc-viewer-thumbs" role="group" aria-label="Photos in this QC group">
-              {viewer.group.photos.map((photo, index) => <button key={photo.id} type="button" aria-label={`Show ${views[photo.view].toLowerCase()} photo`}
+              {viewer.group.photos.map((photo, index) => <button key={photo.id} type="button" aria-label={`Show ${viewLabel(photo)} image ${index + 1}`}
                 aria-pressed={viewer.index === index} onClick={() => setViewer({ ...viewer, index })}>
-                <Image src={publicAsset(photo.src)} alt="" width={60} height={60} />
-                <span>{views[photo.view]}<small>{index + 1} / {viewer.group.photos.length}</small></span>
+                <Image src={publicAsset(photo.src)} alt="" width={60} height={60} referrerPolicy="no-referrer" />
+                <span>{viewLabel(photo)}<small>{index + 1} / {viewer.group.photos.length}</small></span>
               </button>)}
             </div>
           </div>
