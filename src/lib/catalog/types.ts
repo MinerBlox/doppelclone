@@ -17,11 +17,24 @@ export interface Seller {
   name: string;
   marketplace: Marketplace;
   city: string;
+  metrics?: {
+    averageShippingDays: number;
+    averageRating: number;
+    reviewCount: number;
+    sample?: boolean;
+  };
 }
 
 export interface Photo {
   src: string;
   alt: string;
+}
+
+export interface ProductStyle {
+  id: string;
+  name: string;
+  swatch?: string;
+  photo?: Photo;
 }
 
 export interface Product {
@@ -34,6 +47,7 @@ export interface Product {
   sellerId: string;
   listing: SourceListing;
   photo: Photo;
+  styles: ProductStyle[];
   addedAt: string;
   featuredRank: number;
 }
@@ -41,6 +55,7 @@ export interface Product {
 export interface QcImage extends Photo {
   id: string;
   groupId: string;
+  styleId?: string;
   productSlug: string;
   view: "front" | "construction" | "label" | "sole";
   capturedAt: string;

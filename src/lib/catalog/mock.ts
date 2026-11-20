@@ -1,11 +1,24 @@
 import { listingUrl } from "./marketplace";
-import type { Collection, Product, Profile, QcImage, Seller } from "./types";
+import type { Collection, Product, ProductStyle, Profile, QcImage, Seller } from "./types";
 
 export const sellers: Seller[] = [
-  { id: "south-court", name: "South Court Studio", marketplace: "Weidian", city: "Guangzhou" },
-  { id: "form-goods", name: "Form Goods", marketplace: "1688", city: "Hangzhou" },
-  { id: "object-room", name: "Object Room", marketplace: "Taobao", city: "Shanghai" },
+  { id: "south-court", name: "South Court Studio", marketplace: "Weidian", city: "Guangzhou", metrics: { averageShippingDays: 3.2, averageRating: 4.8, reviewCount: 126, sample: true } },
+  { id: "form-goods", name: "Form Goods", marketplace: "1688", city: "Hangzhou", metrics: { averageShippingDays: 2.6, averageRating: 4.7, reviewCount: 84, sample: true } },
+  { id: "object-room", name: "Object Room", marketplace: "Taobao", city: "Shanghai", metrics: { averageShippingDays: 4.1, averageRating: 4.6, reviewCount: 59, sample: true } },
 ];
+
+const alternateStyles: Partial<Record<string, ProductStyle[]>> = {
+  "court-01": [
+    { id: "chalk-navy", name: "Chalk / Navy", swatch: "#25344d" },
+    { id: "sand-gum", name: "Sand / Gum", swatch: "#ad906d" },
+  ],
+  "work-jacket": [{ id: "stone", name: "Stone", swatch: "#a7a297" }],
+  "loopback-hoodie": [{ id: "ink", name: "Ink", swatch: "#303841" }],
+};
+
+const primarySwatches: Partial<Record<string, string>> = {
+  "court-01": "#34493d", "work-jacket": "#3c3a39", "loopback-hoodie": "#a4a09b",
+};
 
 const entries = [
   ["court-01", "Court 01 Sneaker", "Chalk / Pine", "Footwear", "Shoes", 189, 0, "7310045601", "2026-11-16", "Cream suede court sneakers with dark green accents"],
@@ -23,20 +36,22 @@ const entries = [
 export const products: Product[] = entries.map(
   ([slug, name, color, category, kind, priceCny, sellerIndex, itemId, addedAt, alt], featuredRank) => {
     const seller = sellers[sellerIndex];
+    const photo = { src: `/catalog/${slug}.webp`, alt };
     return {
       slug, name, color, category, kind, priceCny, addedAt, featuredRank, sellerId: seller.id,
       listing: { marketplace: seller.marketplace, itemId, url: listingUrl(seller.marketplace, itemId) },
-      photo: { src: `/catalog/${slug}.webp`, alt },
+      photo,
+      styles: [{ id: "original", name: color, photo, swatch: primarySwatches[slug] }, ...(alternateStyles[slug] ?? [])],
     };
   },
 );
 
-export const qcImages: QcImage[] = [
+export const qcImages: QcImage[] = ([
   { id: "court-front", groupId: "court-sample", productSlug: "court-01", view: "front", capturedAt: "2026-11-16", src: "/catalog/qc-court-front.webp", alt: "Sample warehouse photo showing the sneakers from above" },
   { id: "court-sole", groupId: "court-sample", productSlug: "court-01", view: "sole", capturedAt: "2026-11-16", src: "/catalog/qc-court-sole.webp", alt: "Sample warehouse photo showing the sneaker outsole" },
   { id: "jacket-front", groupId: "jacket-sample", productSlug: "work-jacket", view: "front", capturedAt: "2026-11-14", src: "/catalog/qc-jacket-front.webp", alt: "Sample warehouse photo showing the jacket laid flat beside a measuring tape" },
   { id: "jacket-seam", groupId: "jacket-sample", productSlug: "work-jacket", view: "construction", capturedAt: "2026-11-14", src: "/catalog/qc-jacket-seam.webp", alt: "Sample warehouse photo of the jacket zipper and seam construction" },
-];
+] satisfies QcImage[]).map((photo) => ({ ...photo, styleId: "original" }));
 
 export const collections: Collection[] = [{
   slug: "everyday-uniform",

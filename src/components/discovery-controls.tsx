@@ -1,6 +1,6 @@
-import * as Popover from "@radix-ui/react-popover";
 import * as Select from "@radix-ui/react-select";
 import { ArrowRight, Check, ChevronDown, Search, SlidersHorizontal } from "lucide-react";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { marketplaces, sorts, type CatalogQuery, type Sort } from "@/lib/catalog/types";
@@ -71,16 +71,18 @@ export function DiscoveryControls({ state, onChange }: {
   state: CatalogQuery;
   onChange: (patch: Partial<CatalogQuery>) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const id = useId();
   const activeCount = Number(Boolean(state.marketplace)) + Number(Boolean(state.sort && state.sort !== "featured")) + Number(Boolean(state.qcOnly));
   return (
-    <Popover.Root>
-      <Popover.Trigger type="button" className="filter-disclosure">
+    <div className="filter-inline" data-expanded={expanded}>
+      <button type="button" className="filter-disclosure" aria-expanded={expanded} aria-controls={id}
+        onClick={() => setExpanded((current) => !current)}>
         <SlidersHorizontal size={15} strokeWidth={1.7} aria-hidden="true" />
         Filters{activeCount > 0 && <span className="filter-count">{activeCount}</span>}
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content className="filter-panel" side="left" align="start" sideOffset={8}
-          collisionPadding={12} aria-label="Filter and sort products">
+      </button>
+      <div id={id} className="filter-inline-controls" inert={!expanded} aria-hidden={!expanded}
+        role="group" aria-label="Filter and sort products">
           <div className="filter-field">
             <span className="filter-label" aria-hidden="true">Marketplace</span>
             <FilterSelect label="Marketplace" value={state.marketplace ?? "all"} options={marketplaceOptions}
@@ -97,8 +99,7 @@ export function DiscoveryControls({ state, onChange }: {
               onChange={(event) => onChange({ qcOnly: event.currentTarget.checked })} />
             <span className="qc-switch-track" aria-hidden="true" />
           </label>
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+      </div>
+    </div>
   );
 }

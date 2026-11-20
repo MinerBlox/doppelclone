@@ -2,11 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { ProductMedia, QcGallery } from "@/components/product-media";
-import { AgentLinks } from "@/components/agent-links";
-import { CurrencyPrice } from "@/components/currency-price";
+import { ProductDetails } from "@/components/product-details";
 import { catalog } from "@/lib/catalog/service";
-import type { QcImage } from "@/lib/catalog/types";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = false;
@@ -25,41 +22,10 @@ export default async function ProductPage({ params }: Props) {
   const item = await catalog.getProduct(slug);
   if (!item) notFound();
 
-  const photos = await catalog.getQcImages(slug);
-  const photosByGroup = new Map<string, QcImage[]>();
-  for (const photo of photos) {
-    const group = photosByGroup.get(photo.groupId) ?? [];
-    group.push(photo);
-    photosByGroup.set(photo.groupId, group);
-  }
-  const groups = Array.from(photosByGroup, ([id, photos]) => ({ id, photos }));
-  const titlePhotos = [item.photo, ...photos];
-
   return (
     <main className="shell product-page" id="main">
       <Link className="product-back" href="/#discover"><ArrowLeft size={16} aria-hidden="true" /> Discover</Link>
-      <div className="product-overview">
-        <ProductMedia photos={titlePhotos} />
-        <section className="product-detail" aria-labelledby="product-heading">
-          <p className="eyebrow">{item.listing.marketplace} <span aria-hidden="true">/</span> {item.category}</p>
-          <h1 id="product-heading">{item.name}</h1>
-          <CurrencyPrice amount={item.priceCny} />
-          <dl className="product-facts">
-            <div><dt>Colour</dt><dd>{item.color}</dd></div>
-            <div><dt>Seller</dt><dd>{item.seller.name}</dd></div>
-            <div><dt>Ships from</dt><dd>{item.seller.city}</dd></div>
-          </dl>
-          <AgentLinks />
-        </section>
-      </div>
-
-      <section id="product-qc" className="product-qc" aria-labelledby="product-qc-heading">
-        <div className="qc-heading-row">
-          <h2 id="product-qc-heading">QC photos</h2>
-          <p>{photos.length ? `${photos.length} sample warehouse photos` : "No QC photos yet"}</p>
-        </div>
-        {photos.length > 0 ? <QcGallery groups={groups} /> : <p className="qc-empty">Check the product photo above for a closer look.</p>}
-      </section>
+      <ProductDetails item={item} photos={await catalog.getQcImages(slug)} />
     </main>
   );
 }

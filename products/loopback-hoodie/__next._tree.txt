@@ -1,6 +1,6 @@
-:HL["/doppelclone/_next/static/chunks/33_dnzv2lth3r.css","style"]
+:HL["/doppelclone/_next/static/chunks/1s3ywi5b5n9hf.css","style"]
 :HC["/",""]
 3:[["children",{"s":"__PAGE__","h":160}]]
 2:[["children",{"s":{"n":"slug","t":"d","k":"loopback-hoodie","s":[]},"h":65632,"c":"$Q3"}]]
 1:[["children",{"s":"products","h":131168,"c":"$Q2"}]]
-0:{"b":"VNAjg-nga0o2agU_u113m","t":{"t":{"s":"","h":131152,"c":"$Q1"}}}
+0:{"b":"Imp0oP-GFS0X1BSVd4rz_","t":{"t":{"s":"","h":131152,"c":"$Q1"}}}
