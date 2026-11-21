@@ -48,7 +48,7 @@ interface DetailItem {
 export function ProductDetails({ item, photos, live }: {
   item: DetailItem;
   photos: QcImage[];
-  live?: { provider: string; qcStatus: QcAvailability };
+  live?: { provider: string; qcStatus: QcAvailability; savedAt?: string };
 }) {
   const [styleId, setStyleId] = useState(item.styles[0]?.id ?? "");
   const [expanded, setExpanded] = useState(false);
@@ -100,7 +100,9 @@ export function ProductDetails({ item, photos, live }: {
           </div>}
           {live ? <div className="agent-links">
             <a href={item.listing.url} target="_blank" rel="noopener noreferrer" className="agent-more lookup-original">View on {item.listing.marketplace}</a>
-            <p className="style-photo-note">Listing data from {live.provider}.</p>
+            <p className="style-photo-note">{live.savedAt
+              ? `Saved from ${live.provider} on ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(live.savedAt))}. Price and availability may have changed.`
+              : `Listing data from ${live.provider}.`}</p>
           </div> : <AgentLinks />}
           <section className="seller-summary" aria-labelledby="seller-heading">
             <div className="seller-summary-heading">

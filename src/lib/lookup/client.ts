@@ -1,5 +1,6 @@
 import type { SourceListing } from "../catalog/types";
 import type { LookupResponse } from "./types";
+import { savedListing } from "./saved-listing";
 
 const base = process.env.NEXT_PUBLIC_LOOKUP_API_URL;
 type Success = Extract<LookupResponse, { ok: true }>;
@@ -12,7 +13,7 @@ export function lookupResultUrl(listing: SourceListing) {
 export async function lookupProduct(listing: SourceListing, signal: AbortSignal): Promise<LookupResponse> {
   signal.throwIfAborted();
   if (lastResult?.url === listing.url && Date.now() < lastResult.expires) return lastResult.value;
-  if (!base) return {
+  if (!base) return savedListing(listing) ?? {
     ok: false, code: "not_configured",
     message: "Live lookup is not connected on this site yet. You can still browse the demo catalog below.",
   };

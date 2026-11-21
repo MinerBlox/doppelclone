@@ -42,5 +42,6 @@ function Result({ url }: { url: string }) {
     </div>;
   }
   return <ProductDetails item={result.product} photos={result.qc.photos}
-    live={{ provider: result.product.provider, qcStatus: result.qc.status }} />;
+    live={{ provider: result.product.provider, qcStatus: result.qc.status,
+      savedAt: result.saved ? result.product.retrievedAt : undefined }} />;
 }

@@ -24,5 +24,5 @@ export type LookupErrorCode =
   | "provider_unavailable" | "timeout" | "rate_limited";
 
 export type LookupResponse =
-  | { ok: true; product: LiveProduct; qc: { status: QcAvailability; photos: QcImage[] } }
+  | { ok: true; product: LiveProduct; qc: { status: QcAvailability; photos: QcImage[] }; saved?: true }
   | { ok: false; code: LookupErrorCode; message: string };
