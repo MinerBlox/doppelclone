@@ -2,11 +2,12 @@ import { parseMarketplaceUrl } from "../src/lib/catalog/marketplace";
 import type { LookupResponse } from "../src/lib/lookup/types";
 import { create1688Provider } from "./providers/1688";
 import type { Fetch } from "./providers/http";
-import { createLitBuy1688Provider } from "./providers/litbuy";
+import { createLitBuyProvider } from "./providers/litbuy";
 import { lookupFailure, resolveListing } from "./providers/resolver";
 
 export interface Env {
   NEXSCOPE_API_KEY?: string;
+  LOOKUP_PROVIDER?: string;
   LOOKUP_1688_PROVIDER?: string;
   ALLOWED_ORIGINS: string;
   LOOKUP_RATE_LIMIT?: { limit(input: { key: string }): Promise<{ success: boolean }> };
@@ -49,13 +50,13 @@ export async function handleLookup(
   const inputs = url.searchParams.getAll("url");
   const listing = inputs.length === 1 ? parseMarketplaceUrl(inputs[0]) : null;
   if (!listing) return respond(lookupFailure("invalid_url"));
-  const source = env.LOOKUP_1688_PROVIDER ?? "nexscope";
+  const source = env.LOOKUP_PROVIDER ?? env.LOOKUP_1688_PROVIDER ?? "nexscope";
   const apiKey = env.NEXSCOPE_API_KEY?.trim();
-  const provider = source === "litbuy" ? createLitBuy1688Provider(fetcher)
-    : source === "nexscope" && apiKey ? create1688Provider(apiKey, fetcher) : undefined;
-  if (listing.marketplace !== "1688" || !provider) return respond(lookupFailure("not_configured"));
+  const provider = source === "litbuy" ? createLitBuyProvider(listing.marketplace, fetcher)
+    : source === "nexscope" && listing.marketplace === "1688" && apiKey ? create1688Provider(apiKey, fetcher) : undefined;
+  if (!provider) return respond(lookupFailure("not_configured"));
 
-  const key = new Request(new URL(`/_cache/product/v1/${source}/${listing.itemId}`, url.origin));
+  const key = new Request(new URL(`/_cache/product/v2/${source}/${listing.marketplace.toLowerCase()}/${listing.itemId}`, url.origin));
   const cached = await cache?.match(key).catch(() => undefined);
   if (cached) {
     cors.set("Content-Type", "application/json");

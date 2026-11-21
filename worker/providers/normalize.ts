@@ -18,12 +18,12 @@ export function money(value: unknown): number | undefined {
   if (Number.isFinite(amount) && amount > 0) return amount;
 }
 
-export function photo(value: unknown, alt: string): Photo | undefined {
+export function photo(value: unknown, alt: string, domain = "alicdn.com"): Photo | undefined {
   if (typeof value !== "string" || value.length > 2048) return;
   try {
     const url = new URL(value.startsWith("//") ? "https:" + value : value);
     if (url.protocol !== "https:" || url.username || url.password || url.port
-      || !(url.hostname === "alicdn.com" || url.hostname.endsWith(".alicdn.com"))) return;
+      || !(url.hostname === domain || url.hostname.endsWith("." + domain))) return;
     return { src: url.href, alt };
   } catch {
     return;

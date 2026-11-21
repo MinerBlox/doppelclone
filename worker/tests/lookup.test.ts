@@ -301,6 +301,53 @@ test("Worker opts into LitBuy, sends only the canonical offer ID, and isolates p
   const payload = await response.json();
   assert.equal(payload.product.provider, "LitBuy");
   assert.deepEqual(payload.qc, { status: "unavailable", photos: [] });
-  assert.deepEqual(matched, ["/_cache/product/v1/litbuy/746801458197"]);
+  assert.deepEqual(matched, ["/_cache/product/v2/litbuy/1688/746801458197"]);
   assert.deepEqual(stored, matched);
+});
+
+test("LitBuy uses marketplace-specific channels, keeps original URLs, and separates cache keys", async () => {
+  const offerId = "680862062238";
+  const opaqueId = "0000fixture_Taobao-opaque-id";
+  for (const [marketplace, channel, url, returnedId, cdn, detailUrl] of [
+    ["Weidian", "weidian", `https://weidian.com/item.html?itemID=${offerId}`, offerId, "si.geilicdn.com", undefined],
+    ["Taobao", "TAOBAO", `https://item.taobao.com/item.htm?id=${offerId}`, opaqueId, "img.alicdn.com",
+      `https://item.taobao.com/item.htm?id=&mi_id=${opaqueId}`],
+  ] as const) {
+    const listing = parseMarketplaceUrl(url)!;
+    const image = `https://${cdn}/photo.jpg`;
+    const payload = { success: true, code: 200, result: {
+      subject: "Example listing", channel: channel.toUpperCase(), spuNo: returnedId, detailUrl,
+      mainImg: image, imageList: [`https://${cdn}.example.test/no.jpg`], priceCNY: 10, startQuantity: 1,
+      skuVoList: [{ skuNo: "124", spuNo: returnedId, channel: channel.toUpperCase(),
+        skuAttr: [{ name: "Color", enumValue: "Black", enumImageUrl: image }] }],
+    } };
+    const keys: string[] = [];
+    const response = await handleLookup(
+      new Request("https://api.example.test/v1/product?url=" + encodeURIComponent(url)),
+      { LOOKUP_PROVIDER: "litbuy", ALLOWED_ORIGINS: "" },
+      { waitUntil() {} },
+      { match: async (input) => { keys.push(new URL((input as Request).url).pathname); return undefined; }, put: async () => {} },
+      async (input) => {
+        assert.ok(input instanceof Request);
+        assert.equal(input.url, "https://gateway.litbuy.com/unified-service/catalog-service/profile"
+          + `?channel=${channel}&refresh=0&spuNo=${offerId}&activityCode=&linkSearch=true`);
+        return Response.json(payload);
+      },
+    );
+    assert.equal(response.status, 200);
+    const result = await response.json();
+    assert.deepEqual(result.product.listing, listing);
+    assert.deepEqual(result.product.photos.map(({ src }: { src: string }) => src), [image]);
+    assert.equal(result.product.styles[0].photo.src, image);
+    assert.deepEqual(keys, [`/_cache/product/v2/litbuy/${marketplace.toLowerCase()}/${offerId}`]);
+    assert.throws(() => normalizeLitBuy({ ...payload, result: { ...payload.result, spuNo: "123" } }, listing, now),
+      { message: "provider_unavailable" });
+    if (marketplace === "Taobao") {
+      for (const detailUrl of ["https://example.test/item.htm?id=&mi_id=" + opaqueId,
+        "https://item.taobao.com/item.htm?id=123", "https://item.taobao.com/item.htm?id=&mi_id=another"]) {
+        assert.throws(() => normalizeLitBuy({ ...payload, result: { ...payload.result, detailUrl } }, listing, now),
+          { message: "provider_unavailable" });
+      }
+    }
+  }
 });

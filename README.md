@@ -26,8 +26,8 @@ Paste an original marketplace link into the search bar to look up a live listing
 | Data source | Setup and status |
 | --- | --- |
 | 1688 | Defaults to the documented [Nexscope Product Detail API](https://www.nexscope.ai/api-docs/1688-product-detail). A separate LitBuy catalog adapter is opt-in. |
-| Taobao | URL parsing works. Live lookup needs approved item-detail access. The [seller item API](https://open.alitrip.com/doc2/apiDetail.htm?apiId=24625) requires an authorized seller session. |
-| Weidian | URL parsing works. Live lookup needs an approved app and authorized access to item details through the [Weidian Open Platform](https://open.weidian.com/), or a licensed provider. |
+| Taobao | The opt-in LitBuy adapter accepts original Taobao listing links. Live lookup requires approved access. |
+| Weidian | The opt-in LitBuy adapter accepts original Weidian listing links. Live lookup requires approved access. |
 | QC photos | No approved feed is configured. The Worker can attach authorized agent records with source, original product ID, image URL, and optional capture date, SKU, and QC group. An observed HipoBuy browser endpoint does not grant permission to access or republish its photos. |
 
 ### Run live lookup locally
@@ -47,17 +47,17 @@ Paste `https://detail.1688.com/offer/990295210139.html` into the search bar, or 
 curl --get --data-urlencode 'url=https://detail.1688.com/offer/990295210139.html' http://127.0.0.1:8787/v1/product
 ```
 
-### Use LitBuy for 1688
+### Use LitBuy for marketplace lookup
 
-The optional LitBuy adapter maps original 1688 offer IDs to the LitBuy catalog profile endpoint. It was verified against a supplied response for offer `746801458197`. That response supplies CNY pricing, product photos, seller name and variant details. It has no QC photo feed. LitBuy's [business contact](https://litbuy.com/) can confirm permission for server-to-server calls, caching and redisplay, and provide any required access details.
+The optional LitBuy adapter maps original 1688, Weidian and Taobao product IDs to the LitBuy catalog profile endpoint. Tested using supplied responses for 1688 `746801458197`, Weidian `7524338467` and Taobao `680862062238`. The static Pages build shows these three listings using dated saved responses when a Worker URL is absent. LitBuy's [business contact](https://litbuy.com/) can confirm permission for server-to-server calls, caching and redisplay, and provide any required access details.
 
-Once approved, set `LOOKUP_1688_PROVIDER=litbuy` in `worker/.dev.vars` and restart Wrangler. This provider does not use `NEXSCOPE_API_KEY`. Paste the original listing URL into FindThat or run the following:
+Once approved, set `LOOKUP_PROVIDER=litbuy` in `worker/.dev.vars` and restart Wrangler. This provider does not use `NEXSCOPE_API_KEY`. Paste the original listing URL into FindThat or run the following:
 
 ```sh
 curl --get --data-urlencode 'url=https://detail.1688.com/offer/746801458197.html' http://127.0.0.1:8787/v1/product
 ```
 
-For an approved production integration, add `"LOOKUP_1688_PROVIDER": "litbuy"` to `vars` in `worker/wrangler.jsonc` and deploy. The lookup endpoint and frontend configuration are the same for both providers. Remove this setting to use Nexscope again.
+For an approved production integration, add `"LOOKUP_PROVIDER": "litbuy"` to `vars` in `worker/wrangler.jsonc` and deploy. The lookup endpoint and frontend configuration are the same for both providers. Set `LOOKUP_PROVIDER=nexscope` to use Nexscope for 1688 again.
 
 ### Deploy the Worker and static frontend
 
@@ -72,7 +72,7 @@ npx wrangler@4 secret put NEXSCOPE_API_KEY --config worker/wrangler.jsonc
 
 3. Verify the sample URL against the deployed endpoint before releasing the frontend. Rebuild with `NEXT_PUBLIC_LOOKUP_API_URL` set to the deployed Worker origin and `NEXT_PUBLIC_BASE_PATH=/doppelclone`, then use the existing Pages publishing process above. The public endpoint variable is read at build time. The demo remains available without it.
 
-Successful lookups are cached for five minutes at the edge by provider and canonical product ID. Uncached upstream requests are limited to 12 per minute per client IP at each Cloudflare location. The endpoint is public and the limit is local to each location, so configure a provider spend cap or separate budget control before a public release.
+Successful lookups are cached for five minutes at the edge by provider, marketplace and canonical product ID. Uncached upstream requests are limited to 12 per minute per client IP at each Cloudflare location. The endpoint is public and the limit is local to each location, so configure a provider spend cap or separate budget control before a public release.
 
 ## Architecture
 

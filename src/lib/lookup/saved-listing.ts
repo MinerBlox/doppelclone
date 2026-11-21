@@ -1,4 +1,5 @@
 import type { SourceListing } from "../catalog/types";
+import { savedMarketplaceProducts } from "./saved-marketplaces";
 import type { LookupResponse } from "./types";
 
 // Listing fields from the supplied LitBuy response for this exact offer.
@@ -52,7 +53,11 @@ const variants: [id: string, colour: string, size: string, photo: number][] = [
 ];
 
 export function savedListing(listing: SourceListing): Extract<LookupResponse, { ok: true }> | undefined {
-  if (listing.marketplace !== "1688" || listing.itemId !== itemId) return;
+  if (listing.marketplace !== "1688" || listing.itemId !== itemId) {
+    const product = savedMarketplaceProducts.find((candidate) => candidate.listing.url === listing.url);
+    if (product) return { ok: true, saved: true, product, qc: { status: "unavailable", photos: [] } };
+    return;
+  }
   return {
     ok: true,
     saved: true,
