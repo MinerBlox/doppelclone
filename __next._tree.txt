@@ -1,4 +1,4 @@
-:HL["/doppelclone/_next/static/chunks/1s3ywi5b5n9hf.css","style"]
+:HL["/doppelclone/_next/static/chunks/2boiyxorch1sw.css","style"]
 :HC["/",""]
 1:[["children",{"s":"__PAGE__","h":160}]]
-0:{"b":"Imp0oP-GFS0X1BSVd4rz_","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+0:{"b":"Eg5i3zFIuBsB4aiTwpEbt","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
