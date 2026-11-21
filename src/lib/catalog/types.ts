@@ -33,6 +33,7 @@ export interface Photo {
 export interface ProductStyle {
   id: string;
   name: string;
+  options?: { name: string; value: string }[];
   swatch?: string;
   photo?: Photo;
   priceCny?: number;

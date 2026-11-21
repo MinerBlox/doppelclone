@@ -257,6 +257,7 @@ test("normalizes LitBuy product fields from the observed 1688 response shape", (
   ]);
   assert.equal(product.styles[0]?.id, "9530fe59de760ff8676a48417ebcb7bf");
   assert.equal(product.styles[0]?.name, "Dark gray / M");
+  assert.deepEqual(product.styles[0]?.options, [{ name: "Color", value: "Dark gray" }, { name: "Size", value: "M" }]);
   assert.equal(product.styles[0]?.photo?.src, "https://cbu01.alicdn.com/img/gray.jpg");
   assert.equal(product.styles[0]?.priceCny, undefined);
 });

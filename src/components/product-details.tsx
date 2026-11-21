@@ -14,6 +14,35 @@ function matchesStyle(photo: QcImage, styleId: string) {
   return Boolean(styleId && (photo.styleId === styleId || photo.skuId === styleId));
 }
 
+function optionValue(style: ProductStyle, name: string) {
+  return style.options?.find((option) => option.name === name)?.value;
+}
+
+function optionGroups(styles: ProductStyle[]) {
+  const names = [...new Set(styles[0]?.options?.map(({ name }) => name))];
+  if (names.length === 0 || !styles.every((style) =>
+    style.options?.length === names.length && names.every((name) => optionValue(style, name)))) return [];
+  return names.map((name) => ({
+    name,
+    values: [...new Set(styles.map((style) => optionValue(style, name)!))],
+  }));
+}
+
+function selectVariant(styles: ProductStyle[], current: ProductStyle, name: string, value: string) {
+  let closest: ProductStyle | undefined;
+  let best = -1;
+  for (const style of styles) {
+    if (optionValue(style, name) !== value) continue;
+    const matches = current.options?.filter((option) => option.name !== name
+      && optionValue(style, option.name) === option.value).length ?? 0;
+    if (matches > best) {
+      closest = style;
+      best = matches;
+    }
+  }
+  return closest;
+}
+
 function orderGroups(photos: QcImage[], styleId: string) {
   const byGroup = new Map<string, QcImage[]>();
   const matches = (photo: QcImage) => matchesStyle(photo, styleId);
@@ -54,6 +83,7 @@ export function ProductDetails({ item, photos, live }: {
   const [expanded, setExpanded] = useState(false);
   const styleList = useId();
   const style = item.styles.find(({ id }) => id === styleId);
+  const options = optionGroups(item.styles);
   const groups = orderGroups(photos, styleId);
   const matchingCount = photos.filter((photo) => matchesStyle(photo, styleId)).length;
   const mainPhotos = [...new Map(
@@ -78,17 +108,38 @@ export function ProductDetails({ item, photos, live }: {
         </div>
         <section className="product-detail" aria-labelledby="product-heading">
           <p className="eyebrow">{item.listing.marketplace}{item.category && <> <span aria-hidden="true">/</span> {item.category}</>}</p>
-          <h1 id="product-heading">{item.name}</h1>
+          <h1 id="product-heading" title={item.name}>{item.name}</h1>
           {price !== undefined ? <CurrencyPrice amount={price} /> : <p className="style-photo-note">The provider did not return a price.</p>}
           {style?.priceCny === undefined && item.price?.basis === "quantity-tier" && <p className="style-photo-note">Unit price for {item.price.minQuantity}+ pieces.</p>}
           {style?.priceCny === undefined && item.price?.basis === "from" && <p className="style-photo-note">Starting SKU price. Minimum order may apply.</p>}
           {item.styles.length > 0 && <div className="style-picker">
             <button type="button" className="style-picker-trigger" aria-expanded={expanded} aria-controls={styleList}
               onClick={() => setExpanded((current) => !current)}>
-              <strong>Style Options: {item.styles.length}</strong>
+              <strong>{options.length > 0 ? "Style Options" : `Style Options: ${item.styles.length}`}</strong>
               <span>{style?.name}<ChevronDown size={16} aria-hidden="true" /></span>
             </button>
-            <div id={styleList} className="style-option-list" role="group" aria-label="Available styles" hidden={!expanded}>
+            {options.length > 0 && style ? <div id={styleList} className="variant-options" hidden={!expanded}>
+              {options.map(({ name, values }) => {
+                const isColour = /^colou?r(?:way)?$/i.test(name);
+                const label = isColour ? "Colourways" : /^size$/i.test(name) ? "Sizes" : name;
+                return <div className="variant-option-group" role="group" aria-label={label} key={name}>
+                  <p>{label}</p>
+                  <div className="style-option-list">
+                    {values.map((value) => {
+                      const variant = selectVariant(item.styles, style, name, value);
+                      return <button type="button" key={value} className={`style-option${isColour ? "" : " variant-size"}`}
+                        aria-pressed={optionValue(style, name) === value}
+                        onClick={() => { if (variant) setStyleId(variant.id); }}>
+                        {isColour && variant?.photo && <span className="style-option-swatch">
+                          <Image src={publicAsset(variant.photo.src)} alt="" fill sizes="34px" referrerPolicy="no-referrer" />
+                        </span>}
+                        <span>{value}</span>
+                      </button>;
+                    })}
+                  </div>
+                </div>;
+              })}
+            </div> : <div id={styleList} className="style-option-list" role="group" aria-label="Available styles" hidden={!expanded}>
               {item.styles.map((option) => <button type="button" key={option.id} className="style-option"
                 aria-pressed={option.id === styleId} onClick={() => setStyleId(option.id)}>
                 {option.photo ? <span className="style-option-swatch">
@@ -96,14 +147,15 @@ export function ProductDetails({ item, photos, live }: {
                 </span> : <span className="style-option-swatch" style={{ backgroundColor: option.swatch }} aria-hidden="true" />}
                 <span>{option.name}{live?.qcStatus !== "unavailable" && <small>{photos.filter((photo) => matchesStyle(photo, option.id)).length} QC</small>}</span>
               </button>)}
-            </div>
+            </div>}
           </div>}
-          {live ? <div className="agent-links">
+          <AgentLinks />
+          {live && <div className="lookup-source">
             <a href={item.listing.url} target="_blank" rel="noopener noreferrer" className="agent-more lookup-original">View on {item.listing.marketplace}</a>
             <p className="style-photo-note">{live.savedAt
               ? `Saved from ${live.provider} on ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(live.savedAt))}. Price and availability may have changed.`
               : `Listing data from ${live.provider}.`}</p>
-          </div> : <AgentLinks />}
+          </div>}
           <section className="seller-summary" aria-labelledby="seller-heading">
             <div className="seller-summary-heading">
               <h2 id="seller-heading">{seller?.name ?? "Seller information unavailable"}</h2>

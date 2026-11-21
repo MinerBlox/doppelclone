@@ -31,10 +31,15 @@ function listingStyles(data: Record<string, unknown>, listing: SourceListing, pr
     if ((sku.spuNo !== undefined && sku.spuNo !== listing.itemId)
       || (sku.channel !== undefined && sku.channel !== listing.marketplace)) continue;
     const attributes = array(sku.skuAttr).slice(0, 20).map(record);
+    const options = attributes.flatMap((attribute) => {
+      const name = text(attribute.name);
+      const value = text(attribute.enumValue);
+      return name && value ? [{ name, value }] : [];
+    });
     const name = attributes.map(({ enumValue }) => text(enumValue)).filter(Boolean).join(" / ") || "SKU " + id;
     const image = attributes.map(({ enumImageUrl }) => photo(enumImageUrl, name)).find(Boolean);
     // Only replace the listing price when the sample identifies it as a single-piece offer.
-    styles.set(id, { id, name, photo: image, priceCny: price?.basis === "unit" ? money(sku.priceCNY) : undefined });
+    styles.set(id, { id, name, options, photo: image, priceCny: price?.basis === "unit" ? money(sku.priceCNY) : undefined });
   }
   return [...styles.values()];
 }
