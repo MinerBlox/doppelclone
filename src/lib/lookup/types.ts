@@ -6,12 +6,20 @@ export interface ListingPrice {
   minQuantity?: number;
 }
 
+export interface ListingSeller {
+  name: string;
+  translatedName?: string;
+  city?: string;
+  averageShippingHours?: number;
+  shopScore?: number;
+}
+
 export interface LiveProduct {
   listing: SourceListing;
   name: string;
   category?: string;
   price?: ListingPrice;
-  seller?: { name: string; city?: string };
+  seller?: ListingSeller;
   photos: Photo[];
   styles: ProductStyle[];
   provider: string;

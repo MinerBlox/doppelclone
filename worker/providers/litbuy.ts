@@ -8,6 +8,10 @@ import { ProviderError, type ProductProvider } from "./types";
 const endpoint = "https://gateway.litbuy.com/unified-service/catalog-service/profile";
 const channels = { "1688": "1688", Weidian: "weidian", Taobao: "TAOBAO" } as const satisfies Record<Marketplace, string>;
 
+function nonnegativeNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : undefined;
+}
+
 function matchesChannel(channel: unknown, marketplace: Marketplace) {
   return typeof channel === "string" && channel.toUpperCase() === channels[marketplace].toUpperCase();
 }
@@ -98,7 +102,11 @@ export function normalizeLitBuy(payload: unknown, listing: SourceListing, now: D
     listing,
     name,
     price,
-    seller: sellerName ? { name: sellerName } : undefined,
+    seller: sellerName ? {
+      name: sellerName,
+      averageShippingHours: nonnegativeNumber(data.averageShippingHours),
+      shopScore: nonnegativeNumber(data.shopScore),
+    } : undefined,
     photos: [...photos.values()],
     styles: listingStyles(data, listing, price),
     provider: "LitBuy",

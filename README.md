@@ -61,6 +61,8 @@ For an approved production integration, add `"LOOKUP_PROVIDER": "litbuy"` to `va
 
 ### Deploy the Worker and static frontend
 
+To automatically translate Chinese seller names to English on live lookups, add `"ai": { "binding": "AI" }` at the top level of `worker/wrangler.jsonc` before deployment if your account has [Workers AI](https://developers.cloudflare.com/workers-ai/models/m2m100-1.2b/). The listing keeps the original name if translation is unavailable. The saved listings already include their English names where applicable.
+
 1. Set `ALLOWED_ORIGINS` in `worker/wrangler.jsonc` to the exact frontend origins. For the current Pages project, use `https://minerblox.github.io` without the repository path.
 2. Run the following from an authorized Cloudflare account. The secret command is for Nexscope. Enter its key at the prompt if using that provider.
 

@@ -65,7 +65,12 @@ export function savedListing(listing: SourceListing): Extract<LookupResponse, { 
       listing,
       name,
       price: { amountCny: 88, basis: "unit" },
-      seller: { name: "汕尾德利毛织厂" },
+      seller: {
+        name: "汕尾德利毛织厂",
+        translatedName: "Shanwei Deli Knitwear Factory",
+        averageShippingHours: 15.88,
+        shopScore: 4,
+      },
       photos: photos.map((src) => ({ src, alt: name })),
       styles: variants.map(([id, colour, size, index]) => {
         const name = colour + " / " + size;

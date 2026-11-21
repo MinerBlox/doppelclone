@@ -7,7 +7,7 @@ import { AgentLinks } from "@/components/agent-links";
 import { CurrencyPrice } from "@/components/currency-price";
 import { ProductMedia, QcGallery } from "@/components/product-media";
 import type { Photo, ProductStyle, QcImage, Seller, SourceListing } from "@/lib/catalog/types";
-import type { ListingPrice, QcAvailability } from "@/lib/lookup/types";
+import type { ListingPrice, ListingSeller, QcAvailability } from "@/lib/lookup/types";
 import { publicAsset } from "@/lib/utils";
 
 function matchesStyle(photo: QcImage, styleId: string) {
@@ -68,7 +68,7 @@ interface DetailItem {
   category?: string;
   priceCny?: number;
   price?: ListingPrice;
-  seller?: Pick<Seller, "name" | "metrics"> & { city?: string };
+  seller?: ListingSeller & Pick<Seller, "metrics">;
   photo?: Photo;
   photos?: Photo[];
   styles: ProductStyle[];
@@ -92,6 +92,8 @@ export function ProductDetails({ item, photos, live }: {
   ).values()];
   const seller = item.seller;
   const metrics = seller?.metrics;
+  const shippingDays = metrics?.averageShippingDays
+    ?? (seller?.averageShippingHours === undefined ? undefined : seller.averageShippingHours / 24);
   const price = style?.priceCny ?? item.price?.amountCny ?? item.priceCny;
   const qcLabel = live?.qcStatus === "unavailable" ? "No authorized QC feed is available for this listing."
     : photos.length === 0 ? "No QC photos yet" : !style ? `${photos.length} QC photos`
@@ -158,17 +160,22 @@ export function ProductDetails({ item, photos, live }: {
           </div>}
           <section className="seller-summary" aria-labelledby="seller-heading">
             <div className="seller-summary-heading">
-              <h2 id="seller-heading">{seller?.name ?? "Seller information unavailable"}</h2>
+              <h2 id="seller-heading" title={seller?.translatedName ? seller.name : undefined}>
+                {seller?.translatedName ?? seller?.name ?? "Seller information unavailable"}
+              </h2>
               {metrics?.sample && <span>Sample data</span>}
             </div>
-            {(metrics || seller?.city) && <dl className="seller-metrics">
-              {metrics && <>
+            {(metrics || seller?.city || live) && <dl className="seller-metrics">
+              {(metrics || live) && <>
                 <div><dt><Clock3 size={14} aria-hidden="true" /> Avg. shipping time</dt>
-                  <dd>{metrics.averageShippingDays.toFixed(1)} days</dd><dd className="seller-metric-detail">To a local warehouse</dd></div>
-                <div><dt><Star size={14} aria-hidden="true" /> Avg. seller review</dt>
-                  <dd>{metrics.averageRating.toFixed(1)} / 5</dd><dd className="seller-metric-detail">{metrics.reviewCount.toLocaleString("en-US")} reviews</dd></div>
+                  <dd>{shippingDays === undefined ? "N/A" : `${shippingDays.toFixed(1)} days`}</dd>
+                  {metrics && <dd className="seller-metric-detail">To a local warehouse</dd>}</div>
+                <div><dt><Star size={14} aria-hidden="true" /> {live ? "Store rating" : "Avg. seller review"}</dt>
+                  <dd>{metrics ? `${metrics.averageRating.toFixed(1)} / 5` : seller?.shopScore ?? "N/A"}</dd>
+                  {metrics ? <dd className="seller-metric-detail">{metrics.reviewCount.toLocaleString("en-US")} reviews</dd>
+                    : seller?.shopScore !== undefined && <dd className="seller-metric-detail">{live?.provider} shop score</dd>}</div>
               </>}
-              {seller?.city && <div><dt><MapPin size={14} aria-hidden="true" /> Ships from</dt><dd>{seller.city}</dd></div>}
+              {(seller?.city || live) && <div><dt><MapPin size={14} aria-hidden="true" /> Ships from</dt><dd>{seller?.city ?? "N/A"}</dd></div>}
             </dl>}
           </section>
         </section>

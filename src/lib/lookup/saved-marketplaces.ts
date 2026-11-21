@@ -6,7 +6,7 @@ export const savedMarketplaceProducts: LiveProduct[] = [
     listing: {"marketplace":"Weidian","itemId":"7524338467","url":"https://weidian.com/item.html?itemID=7524338467"},
     name: "Summer New Sports Men's Lightweight Jacket Woven Quick-drying Sunscreen Hooded Loose Skin Jacket Coat 4747",
     price: {"amountCny":99.9,"basis":"unit"},
-    seller: {"name":"Luxereps"},
+    seller: { name: "Luxereps", averageShippingHours: 34.64 },
     provider: "LitBuy",
     retrievedAt: "2026-11-21T17:49:10.490Z",
     photos: [
@@ -53,7 +53,7 @@ export const savedMarketplaceProducts: LiveProduct[] = [
     listing: {"marketplace":"Taobao","itemId":"680862062238","url":"https://item.taobao.com/item.htm?id=680862062238"},
     name: "Pit Viper Color Film Sunglasses New Road Cycling Glasses Women's Outdoor Sports Windproof Sunglasses Hot Style",
     price: {"amountCny":5.16,"basis":"unit"},
-    seller: {"name":"豆豆日用杂货铺"},
+    seller: { name: "豆豆日用杂货铺", translatedName: "Doudou General Goods Store", averageShippingHours: 94.41 },
     provider: "LitBuy",
     retrievedAt: "2026-11-21T17:51:37.150Z",
     photos: [

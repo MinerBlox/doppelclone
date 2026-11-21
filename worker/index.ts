@@ -4,10 +4,12 @@ import { create1688Provider } from "./providers/1688";
 import type { Fetch } from "./providers/http";
 import { createLitBuyProvider } from "./providers/litbuy";
 import { lookupFailure, resolveListing } from "./providers/resolver";
+import { translateSellerName, type SellerTranslationBinding } from "./providers/seller-translation";
 
 export interface Env {
   NEXSCOPE_API_KEY?: string;
   LOOKUP_PROVIDER?: string;
+  AI?: SellerTranslationBinding;
   LOOKUP_1688_PROVIDER?: string;
   ALLOWED_ORIGINS: string;
   LOOKUP_RATE_LIMIT?: { limit(input: { key: string }): Promise<{ success: boolean }> };
@@ -56,7 +58,7 @@ export async function handleLookup(
     : source === "nexscope" && listing.marketplace === "1688" && apiKey ? create1688Provider(apiKey, fetcher) : undefined;
   if (!provider) return respond(lookupFailure("not_configured"));
 
-  const key = new Request(new URL(`/_cache/product/v2/${source}/${listing.marketplace.toLowerCase()}/${listing.itemId}`, url.origin));
+  const key = new Request(new URL(`/_cache/product/v3/${source}/${listing.marketplace.toLowerCase()}/${listing.itemId}`, url.origin));
   const cached = await cache?.match(key).catch(() => undefined);
   if (cached) {
     cors.set("Content-Type", "application/json");
@@ -75,6 +77,9 @@ export async function handleLookup(
   }
 
   const result = await resolveListing(listing, [provider]);
+  if (result.ok && result.product.seller && !result.product.seller.translatedName) {
+    result.product.seller.translatedName = await translateSellerName(result.product.seller.name, env.AI);
+  }
   if (result.ok && cache) {
     const response = Response.json(result, { headers: { "Cache-Control": "public, max-age=300" } });
     context.waitUntil(cache.put(key, response).catch(() => undefined));

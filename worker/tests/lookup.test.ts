@@ -3,6 +3,7 @@ import test from "node:test";
 import { looksLikeUrl, parseMarketplaceUrl } from "../../src/lib/catalog/marketplace";
 import { create1688Provider, normalize1688 } from "../providers/1688";
 import { normalizeLitBuy } from "../providers/litbuy";
+import { translateSellerName } from "../providers/seller-translation";
 import { resolveListing } from "../providers/resolver";
 import { handleLookup } from "../index";
 
@@ -230,6 +231,7 @@ function litBuyFixture() {
     success: true, code: 200,
     result: {
       channel: "1688", spuNo: litBuyOffer.itemId, subject: "Fixture knit shirt", shopName: "Fixture knitwear seller",
+      averageShippingHours: 94.41, shopScore: 4,
       description: "<div>Unused listing HTML</div>",
       mainImg: "https://cbu01.alicdn.com/img/knit.jpg",
       imageList: ["//cbu01.alicdn.com/img/knit.jpg", "https://cbu01.alicdn.com/img/back.jpg", "https://example.test/fake.jpg"],
@@ -250,7 +252,7 @@ test("normalizes LitBuy product fields from the observed 1688 response shape", (
   const product = normalizeLitBuy(litBuyFixture(), litBuyOffer, now);
   assert.equal(product.provider, "LitBuy");
   assert.equal(product.name, "Fixture knit shirt");
-  assert.deepEqual(product.seller, { name: "Fixture knitwear seller" });
+  assert.deepEqual(product.seller, { name: "Fixture knitwear seller", averageShippingHours: 94.41, shopScore: 4 });
   assert.deepEqual(product.price, { amountCny: 88, basis: "unit" });
   assert.deepEqual(product.photos.map(({ src }) => src), [
     "https://cbu01.alicdn.com/img/knit.jpg", "https://cbu01.alicdn.com/img/back.jpg",
@@ -301,7 +303,7 @@ test("Worker opts into LitBuy, sends only the canonical offer ID, and isolates p
   const payload = await response.json();
   assert.equal(payload.product.provider, "LitBuy");
   assert.deepEqual(payload.qc, { status: "unavailable", photos: [] });
-  assert.deepEqual(matched, ["/_cache/product/v2/litbuy/1688/746801458197"]);
+  assert.deepEqual(matched, ["/_cache/product/v3/litbuy/1688/746801458197"]);
   assert.deepEqual(stored, matched);
 });
 
@@ -339,7 +341,7 @@ test("LitBuy uses marketplace-specific channels, keeps original URLs, and separa
     assert.deepEqual(result.product.listing, listing);
     assert.deepEqual(result.product.photos.map(({ src }: { src: string }) => src), [image]);
     assert.equal(result.product.styles[0].photo.src, image);
-    assert.deepEqual(keys, [`/_cache/product/v2/litbuy/${marketplace.toLowerCase()}/${offerId}`]);
+    assert.deepEqual(keys, [`/_cache/product/v3/litbuy/${marketplace.toLowerCase()}/${offerId}`]);
     assert.throws(() => normalizeLitBuy({ ...payload, result: { ...payload.result, spuNo: "123" } }, listing, now),
       { message: "provider_unavailable" });
     if (marketplace === "Taobao") {
@@ -350,4 +352,16 @@ test("LitBuy uses marketplace-specific channels, keeps original URLs, and separa
       }
     }
   }
+});
+
+test("seller translation skips Latin names and fails safely when the binding is unavailable", async () => {
+  const binding = { run: async (model: string, input: unknown) => {
+    assert.equal(model, "@cf/meta/m2m100-1.2b");
+    assert.deepEqual(input, { text: "示例商店", source_lang: "zh", target_lang: "en" });
+    return { translated_text: " Example Store " };
+  } };
+  assert.equal(await translateSellerName("示例商店", binding), "Example Store");
+  assert.equal(await translateSellerName("Luxereps", binding), undefined);
+  assert.equal(await translateSellerName("示例商店"), undefined);
+  assert.equal(await translateSellerName("示例商店", { run: async () => { throw new Error("Offline"); } }), undefined);
 });
