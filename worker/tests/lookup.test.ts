@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { looksLikeUrl, parseMarketplaceUrl } from "../../src/lib/catalog/marketplace";
 import { create1688Provider, normalize1688 } from "../providers/1688";
+import { normalizeLitBuy } from "../providers/litbuy";
 import { resolveListing } from "../providers/resolver";
 import { handleLookup } from "../index";
 
@@ -220,4 +221,85 @@ test("Worker does not bill a lookup when no API key is configured or the quota r
     LOOKUP_RATE_LIMIT: { limit: async () => ({ success: false }) } }, ctx, undefined, fetcher);
   assert.equal(limited.status, 429);
   assert.equal(limited.headers.get("Retry-After"), "60");
+});
+
+const litBuyOffer = parseMarketplaceUrl("https://detail.1688.com/offer/746801458197.html")!;
+
+function litBuyFixture() {
+  return {
+    success: true, code: 200,
+    result: {
+      channel: "1688", spuNo: litBuyOffer.itemId, subject: "Fixture knit shirt", shopName: "Fixture knitwear seller",
+      description: "<div>Unused listing HTML</div>",
+      mainImg: "https://cbu01.alicdn.com/img/knit.jpg",
+      imageList: ["//cbu01.alicdn.com/img/knit.jpg", "https://cbu01.alicdn.com/img/back.jpg", "https://example.test/fake.jpg"],
+      startQuantity: 1, price: 15.55, priceUSD: 15.55, priceCNY: 88,
+      saleInfo: { priceRangeList: [{ startQuantity: 500, priceCNY: "75" }, { startQuantity: 1, priceCNY: "88" }] },
+      skuVoList: [{
+        skuNo: "9530fe59de760ff8676a48417ebcb7bf", spuNo: litBuyOffer.itemId, channel: "1688", priceCNY: null,
+        skuAttr: [
+          { name: "Color", enumValue: "Dark gray", enumImageUrl: "https://cbu01.alicdn.com/img/gray.jpg" },
+          { name: "Size", enumValue: "M", enumImageUrl: null },
+        ],
+      }],
+    },
+  };
+}
+
+test("normalizes LitBuy product fields from the observed 1688 response shape", () => {
+  const product = normalizeLitBuy(litBuyFixture(), litBuyOffer, now);
+  assert.equal(product.provider, "LitBuy");
+  assert.equal(product.name, "Fixture knit shirt");
+  assert.deepEqual(product.seller, { name: "Fixture knitwear seller" });
+  assert.deepEqual(product.price, { amountCny: 88, basis: "unit" });
+  assert.deepEqual(product.photos.map(({ src }) => src), [
+    "https://cbu01.alicdn.com/img/knit.jpg", "https://cbu01.alicdn.com/img/back.jpg",
+  ]);
+  assert.equal(product.styles[0]?.id, "9530fe59de760ff8676a48417ebcb7bf");
+  assert.equal(product.styles[0]?.name, "Dark gray / M");
+  assert.equal(product.styles[0]?.photo?.src, "https://cbu01.alicdn.com/img/gray.jpg");
+  assert.equal(product.styles[0]?.priceCny, undefined);
+});
+
+test("LitBuy distinguishes tier pricing, missing CNY, and provider errors", () => {
+  const fixture = litBuyFixture();
+  fixture.result.saleInfo.priceRangeList.shift();
+  fixture.result.saleInfo.priceRangeList[0].startQuantity = 200;
+  assert.deepEqual(normalizeLitBuy(fixture, litBuyOffer, now).price,
+    { amountCny: 88, basis: "quantity-tier", minQuantity: 200 });
+  const usdOnly = { ...fixture, result: { ...fixture.result, saleInfo: null, priceCNY: null } };
+  assert.equal(normalizeLitBuy(usdOnly, litBuyOffer, now).price, undefined);
+  assert.throws(() => normalizeLitBuy(fixture, listing, now), { message: "provider_unavailable" });
+  assert.throws(() => normalizeLitBuy({ ...fixture, result: null }, litBuyOffer, now), { message: "not_found" });
+  assert.throws(() => normalizeLitBuy({ success: false, code: 403 }, litBuyOffer, now), { message: "provider_unavailable" });
+});
+
+test("Worker opts into LitBuy, sends only the canonical offer ID, and isolates provider caches", async () => {
+  const request = new Request("https://api.example.test/v1/product?url="
+    + encodeURIComponent(litBuyOffer.url + "?spm=tracking"));
+  const env = { ALLOWED_ORIGINS: "", NEXSCOPE_API_KEY: "fixture-key", LOOKUP_1688_PROVIDER: "litbuy" };
+  const context = { waitUntil: (_: Promise<unknown>) => {} };
+  const matched: string[] = [];
+  const stored: string[] = [];
+  const cache = {
+    match: async (input: RequestInfo | URL) => { matched.push(new URL((input as Request).url).pathname); return undefined; },
+    put: async (input: RequestInfo | URL) => { stored.push(new URL((input as Request).url).pathname); },
+  };
+  const fetcher: typeof fetch = async (input, init) => {
+    assert.ok(input instanceof Request);
+    assert.equal(input.url, "https://gateway.litbuy.com/unified-service/catalog-service/profile"
+      + "?channel=1688&refresh=0&spuNo=746801458197&activityCode=&linkSearch=true");
+    assert.equal(input.method, "GET");
+    assert.equal(input.headers.has("Authorization"), false);
+    assert.equal(input.headers.has("Cookie"), false);
+    assert.equal(init?.redirect, "error");
+    return Response.json(litBuyFixture());
+  };
+  const response = await handleLookup(request, env, context, cache, fetcher);
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.equal(payload.product.provider, "LitBuy");
+  assert.deepEqual(payload.qc, { status: "unavailable", photos: [] });
+  assert.deepEqual(matched, ["/_cache/product/v1/litbuy/746801458197"]);
+  assert.deepEqual(stored, matched);
 });

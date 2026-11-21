@@ -1,43 +1,14 @@
 import type { Photo, ProductStyle, SourceListing } from "../../src/lib/catalog/types";
 import type { ListingPrice, LiveProduct } from "../../src/lib/lookup/types";
 import { getProviderJson, type Fetch } from "./http";
+import { array, money, photo, record, text } from "./normalize";
 import { ProviderError, type ProductProvider } from "./types";
 
 const endpoint = "https://api.nexscope.ai/alibaba1688/productDetail";
 
-function record(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
-}
-
-function array(value: unknown): unknown[] {
-  return Array.isArray(value) ? value : [];
-}
-
-function text(value: unknown): string | undefined {
-  return typeof value === "string" ? value.trim().slice(0, 300) || undefined : undefined;
-}
-
 function id(value: unknown): string | undefined {
   const string = typeof value === "number" && Number.isSafeInteger(value) ? String(value) : value;
   return typeof string === "string" && /^[1-9]\d{0,31}$/.test(string) ? string : undefined;
-}
-
-function money(value: unknown): number | undefined {
-  if (typeof value !== "number" && (typeof value !== "string" || !/^\d+(?:\.\d+)?$/.test(value.trim()))) return;
-  const amount = Number(value);
-  if (Number.isFinite(amount) && amount > 0) return amount;
-}
-
-function photo(value: unknown, alt: string): Photo | undefined {
-  if (typeof value !== "string" || value.length > 2048) return;
-  try {
-    const url = new URL(value.startsWith("//") ? "https:" + value : value);
-    if (url.protocol !== "https:" || url.username || url.password || url.port
-      || !(url.hostname === "alicdn.com" || url.hostname.endsWith(".alicdn.com"))) return;
-    return { src: url.href, alt };
-  } catch {
-    return;
-  }
 }
 
 function getStyles(skus: Record<string, unknown>[]): ProductStyle[] {

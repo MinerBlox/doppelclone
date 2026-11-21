@@ -2,10 +2,12 @@ import { parseMarketplaceUrl } from "../src/lib/catalog/marketplace";
 import type { LookupResponse } from "../src/lib/lookup/types";
 import { create1688Provider } from "./providers/1688";
 import type { Fetch } from "./providers/http";
+import { createLitBuy1688Provider } from "./providers/litbuy";
 import { lookupFailure, resolveListing } from "./providers/resolver";
 
 export interface Env {
   NEXSCOPE_API_KEY?: string;
+  LOOKUP_1688_PROVIDER?: string;
   ALLOWED_ORIGINS: string;
   LOOKUP_RATE_LIMIT?: { limit(input: { key: string }): Promise<{ success: boolean }> };
 }
@@ -47,10 +49,13 @@ export async function handleLookup(
   const inputs = url.searchParams.getAll("url");
   const listing = inputs.length === 1 ? parseMarketplaceUrl(inputs[0]) : null;
   if (!listing) return respond(lookupFailure("invalid_url"));
+  const source = env.LOOKUP_1688_PROVIDER ?? "nexscope";
   const apiKey = env.NEXSCOPE_API_KEY?.trim();
-  if (listing.marketplace !== "1688" || !apiKey) return respond(lookupFailure("not_configured"));
+  const provider = source === "litbuy" ? createLitBuy1688Provider(fetcher)
+    : source === "nexscope" && apiKey ? create1688Provider(apiKey, fetcher) : undefined;
+  if (listing.marketplace !== "1688" || !provider) return respond(lookupFailure("not_configured"));
 
-  const key = new Request(new URL("/_cache/product/v1/nexscope/" + listing.itemId, url.origin));
+  const key = new Request(new URL(`/_cache/product/v1/${source}/${listing.itemId}`, url.origin));
   const cached = await cache?.match(key).catch(() => undefined);
   if (cached) {
     cors.set("Content-Type", "application/json");
@@ -68,7 +73,7 @@ export async function handleLookup(
     }
   }
 
-  const result = await resolveListing(listing, [create1688Provider(apiKey, fetcher)]);
+  const result = await resolveListing(listing, [provider]);
   if (result.ok && cache) {
     const response = Response.json(result, { headers: { "Cache-Control": "public, max-age=300" } });
     context.waitUntil(cache.put(key, response).catch(() => undefined));
